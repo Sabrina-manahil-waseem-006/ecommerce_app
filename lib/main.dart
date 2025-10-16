@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart'; // <-- import your options
+import 'welcome_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp();
+  await Firebase.initializeApp(
+    options: firebaseOptions, // <-- provide options for web
+  );
   runApp(const MyApp());
 }
 
@@ -12,9 +16,9 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
+    return MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: Scaffold(body: Center(child: Text("Firebase Connected heheh "))),
+      home: const WelcomeScreen(),
     );
   }
 }
