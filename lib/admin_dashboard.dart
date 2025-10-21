@@ -15,38 +15,71 @@ class _AdminDashboardState extends State<AdminDashboard> {
       FirebaseFirestore.instance.collection('supervisor_requests');
 
   Future<void> _approveRequest(DocumentSnapshot reqSnap) async {
-    final id = reqSnap.id;
-    final data = reqSnap.data() as Map<String, dynamic>? ?? {};
-    final adminUid = FirebaseAuth.instance.currentUser?.uid ?? 'admin_unknown';
+  final id = reqSnap.id;
+  final data = reqSnap.data() as Map<String, dynamic>? ?? {};
+  final personal = (data['personalInfo'] ?? {}) as Map<String, dynamic>;
+  final email = personal['email'];
+  final password = personal['password']; // from the form
+  final adminUid = FirebaseAuth.instance.currentUser?.uid ?? 'admin_unknown';
 
-    try {
-      await FirebaseFirestore.instance.collection('supervisors').doc(id).set({
-        ...data,
-        'approvedAt': FieldValue.serverTimestamp(),
-        'approvedBy': adminUid,
-        'status': 'approved',
-      });
+  try {
+    // ✅ 1) CHECK IF EMAIL ALREADY EXISTS IN AUTH
+    final methods = await FirebaseAuth.instance.fetchSignInMethodsForEmail(email);
+    if (methods.isNotEmpty) {
+      // user exists in auth... clean old record
+      final authUser = await FirebaseAuth.instance.signInWithEmailAndPassword(
+          email: email,
+          password: password
+      ).catchError((_) => null);
 
-      final personal = (data['personalInfo'] ?? {}) as Map<String, dynamic>;
-      await FirebaseFirestore.instance.collection('users').doc(id).set({
-        'name': personal['name'] ?? '',
-        'email': personal['email'] ?? '',
-        'role': 'supervisor',
-        'createdAt': FieldValue.serverTimestamp(),
-      });
-
-      await _requestsRef.doc(id).delete();
-
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Request approved successfully')),
-      );
-    } catch (e) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text('Approve failed: $e')));
+      if (authUser != null) {
+        // ❗ Delete old orphaned auth account
+        await authUser.user?.delete();
+      }
     }
+
+    // ✅ 2) CREATE NEW AUTH ACCOUNT
+    UserCredential cred = await FirebaseAuth.instance
+        .createUserWithEmailAndPassword(email: email, password: password);
+
+    final newUid = cred.user!.uid;
+
+    // ✅ 3) SAVE SUPERVISOR DATA
+    await FirebaseFirestore.instance.collection('supervisors')
+        .doc(newUid)
+        .set({
+      ...data,
+      'approvedAt': FieldValue.serverTimestamp(),
+      'approvedBy': adminUid,
+      'status': 'approved',
+    });
+
+    // ✅ 4) SAVE BASIC PROFILE IN USERS COLLECTION
+    await FirebaseFirestore.instance.collection('users')
+        .doc(newUid)
+        .set({
+      'name': personal['name'],
+      'email': email,
+      'role': 'supervisor',
+      'createdAt': FieldValue.serverTimestamp(),
+    });
+
+    // ✅ 5) DELETE ORIGINAL REQUEST
+    await _requestsRef.doc(id).delete();
+
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('✅ Supervisor Approved Successfully')),
+    );
+
+  } catch (e) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text('Approve failed: $e')));
   }
+}
+
+
 
   Future<void> _rejectRequest(DocumentSnapshot reqSnap) async {
     final id = reqSnap.id;
