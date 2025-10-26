@@ -11,75 +11,74 @@ class AdminDashboard extends StatefulWidget {
 }
 
 class _AdminDashboardState extends State<AdminDashboard> {
-  final _requestsRef =
-      FirebaseFirestore.instance.collection('supervisor_requests');
+  final _requestsRef = FirebaseFirestore.instance.collection(
+    'supervisor_requests',
+  );
 
   Future<void> _approveRequest(DocumentSnapshot reqSnap) async {
-  final id = reqSnap.id;
-  final data = reqSnap.data() as Map<String, dynamic>? ?? {};
-  final personal = (data['personalInfo'] ?? {}) as Map<String, dynamic>;
-  final email = personal['email'];
-  final password = personal['password']; // from the form
-  final adminUid = FirebaseAuth.instance.currentUser?.uid ?? 'admin_unknown';
+    final id = reqSnap.id;
+    final data = reqSnap.data() as Map<String, dynamic>? ?? {};
+    final personal = (data['personalInfo'] ?? {}) as Map<String, dynamic>;
+    final email = personal['email'];
+    final password = personal['password']; // from the form
+    final adminUid = FirebaseAuth.instance.currentUser?.uid ?? 'admin_unknown';
 
-  try {
-    // ✅ 1) CHECK IF EMAIL ALREADY EXISTS IN AUTH
-    final methods = await FirebaseAuth.instance.fetchSignInMethodsForEmail(email);
-    if (methods.isNotEmpty) {
-      // user exists in auth... clean old record
-      final authUser = await FirebaseAuth.instance.signInWithEmailAndPassword(
-          email: email,
-          password: password
-      ).catchError((_) => null);
+    try {
+      // ✅ 1) CHECK IF EMAIL ALREADY EXISTS IN AUTH
+      final methods = await FirebaseAuth.instance.fetchSignInMethodsForEmail(
+        email,
+      );
+      if (methods.isNotEmpty) {
+        // user exists in auth... clean old record
+        final authUser = await FirebaseAuth.instance
+            .signInWithEmailAndPassword(email: email, password: password)
+            .catchError((_) => null);
 
-      if (authUser != null) {
-        // ❗ Delete old orphaned auth account
-        await authUser.user?.delete();
+        if (authUser != null) {
+          // ❗ Delete old orphaned auth account
+          await authUser.user?.delete();
+        }
       }
+
+      // ✅ 2) CREATE NEW AUTH ACCOUNT
+      UserCredential cred = await FirebaseAuth.instance
+          .createUserWithEmailAndPassword(email: email, password: password);
+
+      final newUid = cred.user!.uid;
+
+      // ✅ 3) SAVE SUPERVISOR DATA
+      await FirebaseFirestore.instance
+          .collection('supervisors')
+          .doc(newUid)
+          .set({
+            ...data,
+            'approvedAt': FieldValue.serverTimestamp(),
+            'approvedBy': adminUid,
+            'status': 'approved',
+          });
+
+      // ✅ 4) SAVE BASIC PROFILE IN USERS COLLECTION
+      await FirebaseFirestore.instance.collection('users').doc(newUid).set({
+        'name': personal['name'],
+        'email': email,
+        'role': 'supervisor',
+        'createdAt': FieldValue.serverTimestamp(),
+      });
+
+      // ✅ 5) DELETE ORIGINAL REQUEST
+      await _requestsRef.doc(id).delete();
+
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('✅ Supervisor Approved Successfully')),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Approve failed: $e')));
     }
-
-    // ✅ 2) CREATE NEW AUTH ACCOUNT
-    UserCredential cred = await FirebaseAuth.instance
-        .createUserWithEmailAndPassword(email: email, password: password);
-
-    final newUid = cred.user!.uid;
-
-    // ✅ 3) SAVE SUPERVISOR DATA
-    await FirebaseFirestore.instance.collection('supervisors')
-        .doc(newUid)
-        .set({
-      ...data,
-      'approvedAt': FieldValue.serverTimestamp(),
-      'approvedBy': adminUid,
-      'status': 'approved',
-    });
-
-    // ✅ 4) SAVE BASIC PROFILE IN USERS COLLECTION
-    await FirebaseFirestore.instance.collection('users')
-        .doc(newUid)
-        .set({
-      'name': personal['name'],
-      'email': email,
-      'role': 'supervisor',
-      'createdAt': FieldValue.serverTimestamp(),
-    });
-
-    // ✅ 5) DELETE ORIGINAL REQUEST
-    await _requestsRef.doc(id).delete();
-
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('✅ Supervisor Approved Successfully')),
-    );
-
-  } catch (e) {
-    if (!mounted) return;
-    ScaffoldMessenger.of(context)
-        .showSnackBar(SnackBar(content: Text('Approve failed: $e')));
   }
-}
-
-
 
   Future<void> _rejectRequest(DocumentSnapshot reqSnap) async {
     final id = reqSnap.id;
@@ -91,29 +90,29 @@ class _AdminDashboardState extends State<AdminDashboard> {
           .collection('supervisor_requests_rejected')
           .doc(id)
           .set({
-        ...data,
-        'rejectedAt': FieldValue.serverTimestamp(),
-        'rejectedBy': adminUid,
-        'status': 'rejected',
-      });
+            ...data,
+            'rejectedAt': FieldValue.serverTimestamp(),
+            'rejectedBy': adminUid,
+            'status': 'rejected',
+          });
 
       await _requestsRef.doc(id).delete();
 
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Request rejected')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Request rejected')));
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text('Reject failed: $e')));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Reject failed: $e')));
     }
   }
 
   Widget _buildCard(DocumentSnapshot doc) {
     final data = doc.data() as Map<String, dynamic>? ?? {};
     final personal = (data['personalInfo'] ?? {}) as Map<String, dynamic>;
-    final canteen = (data['canteenInfo'] ?? {}) as Map<String, dynamic>;
     final proofUrl = (data['proofFileUrl'] ?? '') as String;
 
     return Container(
@@ -158,20 +157,6 @@ class _AdminDashboardState extends State<AdminDashboard> {
 
             const Divider(height: 24, color: Colors.white24),
 
-            // Canteen info
-            Text(
-              '🍴 Canteen Name: ${canteen['name'] ?? ''}',
-              style: const TextStyle(
-                  color: Colors.white, fontWeight: FontWeight.w600),
-            ),
-            const SizedBox(height: 6),
-            Text(
-              '📝 Description: ${canteen['description'] ?? ''}',
-              style: const TextStyle(color: Colors.white70, height: 1.3),
-            ),
-
-            const SizedBox(height: 10),
-
             // Proof URL
             if (proofUrl.isNotEmpty)
               GestureDetector(
@@ -189,8 +174,10 @@ class _AdminDashboardState extends State<AdminDashboard> {
                 },
                 child: Container(
                   margin: const EdgeInsets.only(top: 10),
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 8,
+                  ),
                   decoration: BoxDecoration(
                     color: Colors.blueAccent.withOpacity(0.2),
                     borderRadius: BorderRadius.circular(10),
@@ -221,7 +208,8 @@ class _AdminDashboardState extends State<AdminDashboard> {
                     backgroundColor: Colors.green,
                     minimumSize: const Size(130, 45),
                     shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12)),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                   ),
                   onPressed: () => _approveRequest(doc),
                 ),
@@ -235,7 +223,8 @@ class _AdminDashboardState extends State<AdminDashboard> {
                     backgroundColor: Colors.redAccent,
                     minimumSize: const Size(130, 45),
                     shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12)),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                   ),
                   onPressed: () => _rejectRequest(doc),
                 ),
@@ -257,7 +246,10 @@ class _AdminDashboardState extends State<AdminDashboard> {
         title: const Text(
           'Admin Dashboard',
           style: TextStyle(
-              color: Colors.white, fontWeight: FontWeight.bold, fontSize: 22),
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+            fontSize: 22,
+          ),
         ),
         centerTitle: true,
       ),

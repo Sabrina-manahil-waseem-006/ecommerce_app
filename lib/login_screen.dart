@@ -67,8 +67,10 @@ class _LoginScreenState extends State<LoginScreen> {
       );
 
       final uid = cred.user!.uid;
-      final userDoc =
-          await FirebaseFirestore.instance.collection('users').doc(uid).get();
+      final userDoc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(uid)
+          .get();
 
       if (!userDoc.exists) {
         await FirebaseAuth.instance.signOut();
@@ -126,7 +128,10 @@ class _LoginScreenState extends State<LoginScreen> {
               // 🔴 Header Section
               Container(
                 width: double.infinity,
-                padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 20),
+                padding: const EdgeInsets.symmetric(
+                  vertical: 15,
+                  horizontal: 20,
+                ),
                 decoration: BoxDecoration(
                   gradient: const LinearGradient(
                     colors: [Color(0xFF9B1C1C), Color(0xFFB71C1C)],
@@ -137,8 +142,11 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
                 child: Column(
                   children: [
-                    Icon(Icons.fastfood_rounded,
-                        size: 50, color: Colors.white.withOpacity(0.9)),
+                    Icon(
+                      Icons.fastfood_rounded,
+                      size: 50,
+                      color: Colors.white.withOpacity(0.9),
+                    ),
                     const SizedBox(height: 5),
                     Text(
                       "NEDEats",
@@ -212,8 +220,10 @@ class _LoginScreenState extends State<LoginScreen> {
                           borderRadius: BorderRadius.circular(10),
                         ),
                         focusedBorder: const OutlineInputBorder(
-                          borderSide:
-                              BorderSide(color: Color(0xFF002855), width: 1.4),
+                          borderSide: BorderSide(
+                            color: Color(0xFF002855),
+                            width: 1.4,
+                          ),
                         ),
                       ),
                     ),
@@ -222,8 +232,10 @@ class _LoginScreenState extends State<LoginScreen> {
                         padding: const EdgeInsets.only(top: 5, left: 5),
                         child: Text(
                           emailError!,
-                          style:
-                              const TextStyle(color: Colors.red, fontSize: 12),
+                          style: const TextStyle(
+                            color: Colors.red,
+                            fontSize: 12,
+                          ),
                         ),
                       ),
                     const SizedBox(height: 20),
@@ -236,18 +248,23 @@ class _LoginScreenState extends State<LoginScreen> {
                         labelText: "Password",
                         prefixIcon: const Icon(Icons.lock_outline),
                         suffixIcon: IconButton(
-                          icon: Icon(isPasswordVisible
-                              ? Icons.visibility
-                              : Icons.visibility_off),
+                          icon: Icon(
+                            isPasswordVisible
+                                ? Icons.visibility
+                                : Icons.visibility_off,
+                          ),
                           onPressed: () => setState(
-                              () => isPasswordVisible = !isPasswordVisible),
+                            () => isPasswordVisible = !isPasswordVisible,
+                          ),
                         ),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(10),
                         ),
                         focusedBorder: const OutlineInputBorder(
-                          borderSide:
-                              BorderSide(color: Color(0xFF002855), width: 1.4),
+                          borderSide: BorderSide(
+                            color: Color(0xFF002855),
+                            width: 1.4,
+                          ),
                         ),
                       ),
                     ),
@@ -256,8 +273,10 @@ class _LoginScreenState extends State<LoginScreen> {
                         padding: const EdgeInsets.only(top: 5, left: 5),
                         child: Text(
                           passwordError!,
-                          style:
-                              const TextStyle(color: Colors.red, fontSize: 12),
+                          style: const TextStyle(
+                            color: Colors.red,
+                            fontSize: 12,
+                          ),
                         ),
                       ),
                     const SizedBox(height: 25),

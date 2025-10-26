@@ -20,8 +20,6 @@ class _SupervisorRequestScreenState extends State<SupervisorRequestScreen> {
   final passwordController = TextEditingController();
   final phoneController = TextEditingController();
   final cnicController = TextEditingController();
-  final canteenNameController = TextEditingController();
-  final descriptionController = TextEditingController();
   final jazzCashNameController = TextEditingController();
   final jazzCashNumberController = TextEditingController();
   final accountTypeController = TextEditingController();
@@ -65,10 +63,6 @@ class _SupervisorRequestScreenState extends State<SupervisorRequestScreen> {
           'phone': phoneController.text.trim(),
           'cnic': cnicController.text.trim(),
         },
-        'canteenInfo': {
-          'name': canteenNameController.text.trim(),
-          'description': descriptionController.text.trim(),
-        },
         'paymentInfo': {
           'jazzCashName': jazzCashNameController.text.trim(),
           'jazzCashNumber': jazzCashNumberController.text.trim(),
@@ -81,7 +75,9 @@ class _SupervisorRequestScreenState extends State<SupervisorRequestScreen> {
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Request submitted! Admin will review.")),
+          const SnackBar(
+            content: Text("Request submitted! Admin will review."),
+          ),
         );
       }
 
@@ -91,8 +87,9 @@ class _SupervisorRequestScreenState extends State<SupervisorRequestScreen> {
       );
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text("Error: $e")));
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text("Error: $e")));
       }
     } finally {
       if (mounted) setState(() => isLoading = false);
@@ -205,15 +202,16 @@ class _SupervisorRequestScreenState extends State<SupervisorRequestScreen> {
                                 : Icons.visibility_off,
                             color: Colors.white70,
                           ),
-                          onPressed: () => setState(() =>
-                              isPasswordVisible = !isPasswordVisible),
+                          onPressed: () => setState(
+                            () => isPasswordVisible = !isPasswordVisible,
+                          ),
                         ),
                         validator: (val) {
                           if (val == null || val.isEmpty) {
                             return "Password is required";
                           }
                           if (val.length < 6) {
-                            return "Password must be at least 6 characters";
+                            return "Password must be at least 6 characters long";
                           }
                           return null;
                         },
@@ -232,25 +230,6 @@ class _SupervisorRequestScreenState extends State<SupervisorRequestScreen> {
                         keyboardType: TextInputType.number,
                         validator: (val) => val == null || val.isEmpty
                             ? "CNIC is required"
-                            : null,
-                      ),
-
-                      const SizedBox(height: 20),
-
-                      // Canteen Info
-                      buildTextField(
-                        controller: canteenNameController,
-                        label: "Canteen Name",
-                        validator: (val) => val == null || val.isEmpty
-                            ? "Canteen name is required"
-                            : null,
-                      ),
-                      buildTextField(
-                        controller: descriptionController,
-                        label: "Description",
-                        maxLines: 3,
-                        validator: (val) => val == null || val.isEmpty
-                            ? "Description is required"
                             : null,
                       ),
 
@@ -307,8 +286,7 @@ class _SupervisorRequestScreenState extends State<SupervisorRequestScreen> {
                               agreedToTerms = val ?? false;
                               termsError = null;
                             }),
-                            fillColor:
-                                MaterialStateProperty.all(Colors.white),
+                            fillColor: MaterialStateProperty.all(Colors.white),
                           ),
                           const Expanded(
                             child: Text(
@@ -339,10 +317,12 @@ class _SupervisorRequestScreenState extends State<SupervisorRequestScreen> {
                               child: ElevatedButton(
                                 onPressed: submitRequest,
                                 style: ElevatedButton.styleFrom(
-                                  backgroundColor:
-                                      Colors.white.withOpacity(0.3),
-                                  padding:
-                                      const EdgeInsets.symmetric(vertical: 15),
+                                  backgroundColor: Colors.white.withOpacity(
+                                    0.3,
+                                  ),
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 15,
+                                  ),
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(15),
                                   ),
