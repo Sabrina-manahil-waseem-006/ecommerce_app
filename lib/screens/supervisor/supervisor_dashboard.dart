@@ -2,8 +2,10 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'canteen_registration_screen.dart';
-import 'canteen_management_screen.dart'; // make sure you have this screen
+import '../../services/supervisor_service.dart';
+import '../canteen/canteen_registration_screen.dart';
+import '../canteen/canteen_management_screen.dart';
+
 
 class SupervisorDashboard extends StatefulWidget {
   const SupervisorDashboard({super.key});
@@ -13,6 +15,7 @@ class SupervisorDashboard extends StatefulWidget {
 }
 
 class _SupervisorDashboardState extends State<SupervisorDashboard> {
+  final _supervisorService = SupervisorService();
   bool isLoading = true;
   bool hasCanteen = false;
   Map<String, dynamic>? supData;
@@ -26,24 +29,13 @@ class _SupervisorDashboardState extends State<SupervisorDashboard> {
 
   Future<void> loadData() async {
     setState(() => isLoading = true);
-    final currentUser = FirebaseAuth.instance.currentUser;
-    if (currentUser == null) return;
+    final data = await _supervisorService.getSupervisorData();
+    if (data == null) return;
 
-    final supDoc = await FirebaseFirestore.instance
-        .collection('supervisors')
-        .doc(currentUser.uid)
-        .get();
-
-    final data = supDoc.data();
-    bool exists = data?['canteenId'] != null;
-
+    bool exists = data['canteenId'] != null;
     Map<String, dynamic>? canteen;
     if (exists) {
-      final canteenDoc = await FirebaseFirestore.instance
-          .collection('canteens')
-          .doc(data!['canteenId'])
-          .get();
-      canteen = canteenDoc.data();
+      canteen = await _supervisorService.getCanteenData(data['canteenId']);
     }
 
     setState(() {
@@ -57,27 +49,11 @@ class _SupervisorDashboardState extends State<SupervisorDashboard> {
   Future<void> deleteCanteen() async {
     if (!hasCanteen || canteenData == null) return;
 
-    final currentUser = FirebaseAuth.instance.currentUser;
-    final canteenId = supData!['canteenId'];
-
     try {
-      await FirebaseFirestore.instance
-          .collection('canteens')
-          .doc(canteenId)
-          .delete();
-
-      await FirebaseFirestore.instance
-          .collection('supervisors')
-          .doc(currentUser!.uid)
-          .update({
-            'canteenId': FieldValue.delete(),
-            'canteenName': FieldValue.delete(),
-          });
-
+      await _supervisorService.deleteCanteen(supData!['canteenId']);
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Canteen deleted successfully")),
       );
-
       loadData();
     } catch (e) {
       ScaffoldMessenger.of(
@@ -104,13 +80,9 @@ class _SupervisorDashboardState extends State<SupervisorDashboard> {
           ),
           child: Column(
             children: [
-              // 🔴 Header
               Container(
                 width: double.infinity,
-                padding: const EdgeInsets.symmetric(
-                  vertical: 20,
-                  horizontal: 20,
-                ),
+                padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 20),
                 decoration: BoxDecoration(
                   gradient: const LinearGradient(
                     colors: [Color(0xFF9B1C1C), Color(0xFFB71C1C)],
@@ -147,10 +119,7 @@ class _SupervisorDashboardState extends State<SupervisorDashboard> {
                   ],
                 ),
               ),
-
               const SizedBox(height: 30),
-
-              // Card-like content
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.all(25),
@@ -207,9 +176,8 @@ class _SupervisorDashboardState extends State<SupervisorDashboard> {
                               },
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: Colors.green,
-                                padding: const EdgeInsets.symmetric(
-                                  vertical: 14,
-                                ),
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 14),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(10),
                                 ),
@@ -230,9 +198,8 @@ class _SupervisorDashboardState extends State<SupervisorDashboard> {
                               onPressed: deleteCanteen,
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: Colors.redAccent,
-                                padding: const EdgeInsets.symmetric(
-                                  vertical: 14,
-                                ),
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 14),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(10),
                                 ),
@@ -265,15 +232,15 @@ class _SupervisorDashboardState extends State<SupervisorDashboard> {
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
-                                    builder: (_) => CanteenRegistrationScreen(),
+                                    builder: (_) =>
+                                        const CanteenRegistrationScreen(),
                                   ),
                                 ).then((_) => loadData());
                               },
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: const Color(0xFF9B1C1C),
-                                padding: const EdgeInsets.symmetric(
-                                  vertical: 14,
-                                ),
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 14),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(10),
                                 ),

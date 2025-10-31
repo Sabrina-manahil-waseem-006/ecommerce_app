@@ -11,11 +11,11 @@ class CanteenRegistrationScreen extends StatefulWidget {
       _CanteenRegistrationScreenState();
 }
 
-class _CanteenRegistrationScreenState extends State<CanteenRegistrationScreen> {
+class _CanteenRegistrationScreenState
+    extends State<CanteenRegistrationScreen> {
   final _formKey = GlobalKey<FormState>();
   final nameController = TextEditingController();
   final descriptionController = TextEditingController();
-
   bool isLoading = false;
 
   Future<void> submitCanteen() async {
@@ -27,17 +27,17 @@ class _CanteenRegistrationScreenState extends State<CanteenRegistrationScreen> {
     setState(() => isLoading = true);
 
     try {
-      // Add canteen document WITHOUT image
+      // Add canteen document
       final canteenRef = await FirebaseFirestore.instance
           .collection('canteens')
           .add({
-            'name': nameController.text.trim(),
-            'description': descriptionController.text.trim(),
-            'supervisorId': currentUser.uid,
-            'createdAt': FieldValue.serverTimestamp(),
-          });
+        'name': nameController.text.trim(),
+        'description': descriptionController.text.trim(),
+        'supervisorId': currentUser.uid,
+        'createdAt': FieldValue.serverTimestamp(),
+      });
 
-      // Update supervisor doc with canteen
+      // Update supervisor doc
       final supervisorRef = FirebaseFirestore.instance
           .collection('supervisors')
           .doc(currentUser.uid);
@@ -142,7 +142,6 @@ class _CanteenRegistrationScreenState extends State<CanteenRegistrationScreen> {
                   ],
                 ),
               ),
-
               const SizedBox(height: 30),
 
               // Form

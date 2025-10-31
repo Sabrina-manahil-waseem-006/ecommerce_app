@@ -7,6 +7,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
 import 'update_items_screen.dart';
+import 'package:ecommerce_app/screens/canteen/update_items_screen.dart';
 
 class CanteenDashboardScreen extends StatefulWidget {
   final String canteenId;

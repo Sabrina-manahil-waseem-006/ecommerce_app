@@ -10,7 +10,6 @@ class UpdateItemsScreen extends StatefulWidget {
   final String canteenId;
   const UpdateItemsScreen({super.key, required this.canteenId});
 
-  @override
   State<UpdateItemsScreen> createState() => _UpdateItemsScreenState();
 }
 

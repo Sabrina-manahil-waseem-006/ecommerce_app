@@ -18,16 +18,15 @@ class WelcomeScreen extends StatelessWidget {
               return const Center(child: Text("Image not found!"));
             },
           ),
-          Container(color: Colors.black38), // dark overlay
+          Container(color: Colors.black38),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20),
             child: Column(
               children: [
-                const SizedBox(height: 60), // top spacing
+                const SizedBox(height: 60),
                 Text(
                   'Welcome to NED Eats',
                   style: GoogleFonts.pacifico(
-                    // fancy font
                     fontSize: 38,
                     color: Colors.white,
                     shadows: const [
@@ -40,7 +39,7 @@ class WelcomeScreen extends StatelessWidget {
                   ),
                   textAlign: TextAlign.center,
                 ),
-                const Spacer(), // pushes button to bottom
+                const Spacer(),
                 ElevatedButton(
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.white.withOpacity(0.3),
@@ -55,7 +54,7 @@ class WelcomeScreen extends StatelessWidget {
                   onPressed: () {
                     Navigator.pushReplacement(
                       context,
-                      MaterialPageRoute(builder: (_) => const LoginScreen()),
+                      MaterialPageRoute(builder: (_) =>  LoginScreen()),
                     );
                   },
                   child: const Text(

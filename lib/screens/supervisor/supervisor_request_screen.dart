@@ -1,8 +1,9 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'login_screen.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../../services/supervisor_service.dart';
+import '../auth/login_screen.dart';
 
 class SupervisorRequestScreen extends StatefulWidget {
   const SupervisorRequestScreen({super.key});
@@ -13,6 +14,7 @@ class SupervisorRequestScreen extends StatefulWidget {
 }
 
 class _SupervisorRequestScreenState extends State<SupervisorRequestScreen> {
+  final _supervisorService = SupervisorService();
   final _formKey = GlobalKey<FormState>();
 
   final nameController = TextEditingController();
@@ -55,7 +57,7 @@ class _SupervisorRequestScreenState extends State<SupervisorRequestScreen> {
     setState(() => isLoading = true);
 
     try {
-      await FirebaseFirestore.instance.collection('supervisor_requests').add({
+      await _supervisorService.submitSupervisorRequest({
         'personalInfo': {
           'name': nameController.text.trim(),
           'email': emailController.text.trim(),
@@ -75,21 +77,17 @@ class _SupervisorRequestScreenState extends State<SupervisorRequestScreen> {
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text("Request submitted! Admin will review."),
-          ),
+          const SnackBar(content: Text("Request submitted! Admin will review.")),
+        );
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => LoginScreen()),
         );
       }
-
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (_) => const LoginScreen()),
-      );
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text("Error: $e")));
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text("Error: $e")));
       }
     } finally {
       if (mounted) setState(() => isLoading = false);
@@ -168,23 +166,18 @@ class _SupervisorRequestScreenState extends State<SupervisorRequestScreen> {
                         textAlign: TextAlign.center,
                       ),
                       const SizedBox(height: 20),
-
-                      // Personal Info
                       buildTextField(
                         controller: nameController,
                         label: "Full Name",
-                        validator: (val) => val == null || val.isEmpty
-                            ? "Name is required"
-                            : null,
+                        validator: (val) =>
+                            val == null || val.isEmpty ? "Name is required" : null,
                       ),
                       buildTextField(
                         controller: emailController,
                         label: "Email",
                         keyboardType: TextInputType.emailAddress,
                         validator: (val) {
-                          if (val == null || val.isEmpty) {
-                            return "Email is required";
-                          }
+                          if (val == null || val.isEmpty) return "Email is required";
                           if (!RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(val)) {
                             return "Enter a valid email";
                           }
@@ -207,12 +200,10 @@ class _SupervisorRequestScreenState extends State<SupervisorRequestScreen> {
                           ),
                         ),
                         validator: (val) {
-                          if (val == null || val.isEmpty) {
+                          if (val == null || val.isEmpty)
                             return "Password is required";
-                          }
-                          if (val.length < 6) {
-                            return "Password must be at least 6 characters long";
-                          }
+                          if (val.length < 6)
+                            return "Password must be at least 6 characters";
                           return null;
                         },
                       ),
@@ -220,48 +211,37 @@ class _SupervisorRequestScreenState extends State<SupervisorRequestScreen> {
                         controller: phoneController,
                         label: "Phone Number",
                         keyboardType: TextInputType.phone,
-                        validator: (val) => val == null || val.isEmpty
-                            ? "Phone number is required"
-                            : null,
+                        validator: (val) =>
+                            val == null || val.isEmpty ? "Phone required" : null,
                       ),
                       buildTextField(
                         controller: cnicController,
                         label: "CNIC",
                         keyboardType: TextInputType.number,
-                        validator: (val) => val == null || val.isEmpty
-                            ? "CNIC is required"
-                            : null,
+                        validator: (val) =>
+                            val == null || val.isEmpty ? "CNIC required" : null,
                       ),
-
                       const SizedBox(height: 20),
-
-                      // Payment Info
                       buildTextField(
                         controller: jazzCashNameController,
                         label: "JazzCash Account Name",
-                        validator: (val) => val == null || val.isEmpty
-                            ? "Account name is required"
-                            : null,
+                        validator: (val) =>
+                            val == null || val.isEmpty ? "Name required" : null,
                       ),
                       buildTextField(
                         controller: jazzCashNumberController,
                         label: "JazzCash Number",
                         keyboardType: TextInputType.phone,
-                        validator: (val) => val == null || val.isEmpty
-                            ? "JazzCash number is required"
-                            : null,
+                        validator: (val) =>
+                            val == null || val.isEmpty ? "Number required" : null,
                       ),
                       buildTextField(
                         controller: accountTypeController,
                         label: "Account Type",
-                        validator: (val) => val == null || val.isEmpty
-                            ? "Account type is required"
-                            : null,
+                        validator: (val) =>
+                            val == null || val.isEmpty ? "Type required" : null,
                       ),
-
                       const SizedBox(height: 10),
-
-                      // Optional File Upload
                       ElevatedButton(
                         onPressed: pickFile,
                         style: ElevatedButton.styleFrom(
@@ -274,18 +254,13 @@ class _SupervisorRequestScreenState extends State<SupervisorRequestScreen> {
                           style: const TextStyle(color: Colors.white),
                         ),
                       ),
-
                       const SizedBox(height: 20),
-
-                      // Terms and Conditions
                       Row(
                         children: [
                           Checkbox(
                             value: agreedToTerms,
-                            onChanged: (val) => setState(() {
-                              agreedToTerms = val ?? false;
-                              termsError = null;
-                            }),
+                            onChanged: (val) =>
+                                setState(() => agreedToTerms = val ?? false),
                             fillColor: MaterialStateProperty.all(Colors.white),
                           ),
                           const Expanded(
@@ -307,9 +282,7 @@ class _SupervisorRequestScreenState extends State<SupervisorRequestScreen> {
                             ),
                           ),
                         ),
-
                       const SizedBox(height: 20),
-
                       isLoading
                           ? const CircularProgressIndicator(color: Colors.white)
                           : SizedBox(
@@ -317,12 +290,10 @@ class _SupervisorRequestScreenState extends State<SupervisorRequestScreen> {
                               child: ElevatedButton(
                                 onPressed: submitRequest,
                                 style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.white.withOpacity(
-                                    0.3,
-                                  ),
+                                  backgroundColor:
+                                      Colors.white.withOpacity(0.3),
                                   padding: const EdgeInsets.symmetric(
-                                    vertical: 15,
-                                  ),
+                                      vertical: 15),
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(15),
                                   ),
