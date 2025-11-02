@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "538616085939",
+    "project_id": "nedeats-3a075",
+    "storage_bucket": "nedeats-3a075.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:538616085939:android:008c79c241722c76c49fc6",
+        "android_client_info": {
+          "package_name": "com.example.ecommerce_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDkI5SVy_2RpAnO_5PY3-HjoT_k5NlKmtY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
