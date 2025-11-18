@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../models/cart_item.dart';
 
+
 class CartService {
   final _firestore = FirebaseFirestore.instance;
   final _auth = FirebaseAuth.instance;

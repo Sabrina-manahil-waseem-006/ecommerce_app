@@ -49,15 +49,21 @@ class _CanteenDashboardScreenState extends State<CanteenDashboardScreen> {
         });
       } else {
         setState(() => isLoading = false);
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text("❌ Canteen not found")));
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("Canteen not found"),
+            backgroundColor: Colors.red,
+          ),
+        );
       }
     } catch (e) {
       setState(() => isLoading = false);
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text("Error loading canteen: $e")));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("Error loading canteen: $e"),
+          backgroundColor: Colors.red,
+        ),
+      );
     }
   }
 
@@ -73,7 +79,7 @@ class _CanteenDashboardScreenState extends State<CanteenDashboardScreen> {
       final cats = snapshot.docs.map((doc) => doc.id).toList();
       setState(() => availableCategories = cats);
     } catch (e) {
-      debugPrint("❌ Error loading categories: $e");
+      debugPrint("Error loading categories: $e");
     }
   }
 
@@ -106,7 +112,7 @@ class _CanteenDashboardScreenState extends State<CanteenDashboardScreen> {
 
       setState(() => allItems = itemsList);
     } catch (e) {
-      debugPrint("❌ Error loading items: $e");
+      debugPrint("Error loading items: $e");
     }
   }
 
@@ -134,11 +140,11 @@ class _CanteenDashboardScreenState extends State<CanteenDashboardScreen> {
         final data = jsonDecode(resBody);
         return data['secure_url'];
       } else {
-        print("❌ Cloudinary upload failed: $resBody");
+        print("Cloudinary upload failed: $resBody");
         return null;
       }
     } catch (e) {
-      print("❌ Upload error: $e");
+      print("Upload error: $e");
       return null;
     }
   }
@@ -164,13 +170,19 @@ class _CanteenDashboardScreenState extends State<CanteenDashboardScreen> {
 
       setState(() => imageUrl = newUrl);
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("✅ Profile image updated successfully")),
+        const SnackBar(
+          content: Text("Profile image updated successfully"),
+          backgroundColor: Colors.green,
+        ),
       );
     } catch (e) {
-      debugPrint("❌ Error uploading image: $e");
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text("❌ Error uploading image: $e")));
+      debugPrint("Error uploading image: $e");
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("Error uploading image: $e"),
+          backgroundColor: Colors.red,
+        ),
+      );
     }
   }
 
@@ -213,14 +225,20 @@ class _CanteenDashboardScreenState extends State<CanteenDashboardScreen> {
       }
 
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("🗑️ Item deleted successfully")),
+        const SnackBar(
+          content: Text("Item deleted successfully"),
+          backgroundColor: Colors.green,
+        ),
       );
       await loadAllItems();
       await loadCategories();
     } catch (e) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text("❌ Error deleting item: $e")));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("Error deleting item: $e"),
+          backgroundColor: Colors.red,
+        ),
+      );
     }
   }
 
@@ -331,7 +349,7 @@ class _CanteenDashboardScreenState extends State<CanteenDashboardScreen> {
             ),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF9B1C1C),
+                backgroundColor: Colors.blueAccent,
               ),
               onPressed: () async {
                 final name = nameController.text.trim();
@@ -345,7 +363,7 @@ class _CanteenDashboardScreenState extends State<CanteenDashboardScreen> {
                 if (name.isEmpty || price <= 0) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
-                      content: Text("⚠️ Please enter valid name & price"),
+                      content: Text("Please enter valid name & price"),
                     ),
                   );
                   return;
@@ -360,7 +378,10 @@ class _CanteenDashboardScreenState extends State<CanteenDashboardScreen> {
                   category,
                 );
               },
-              child: const Text("Add Item"),
+              child: const Text(
+                "Add Item",
+                style: TextStyle(color: Colors.white),
+              ),
             ),
           ],
         ),
@@ -415,15 +436,21 @@ class _CanteenDashboardScreenState extends State<CanteenDashboardScreen> {
       }
 
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("✅ Item added successfully")),
+        const SnackBar(
+          content: Text("Item added successfully"),
+          backgroundColor: Colors.green,
+        ),
       );
       await loadCategories();
       await loadAllItems();
     } catch (e) {
-      debugPrint("❌ Error adding item: $e");
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text("❌ Error adding item: $e")));
+      debugPrint("Error adding item: $e");
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("Error adding item: $e"),
+          backgroundColor: Colors.red,
+        ),
+      );
     }
   }
 
@@ -433,8 +460,17 @@ class _CanteenDashboardScreenState extends State<CanteenDashboardScreen> {
     final desc = canteenData?['description'] ?? 'No description provided';
     final img = imageUrl;
 
-    if (isLoading)
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    if (isLoading) {
+      return Scaffold(
+        backgroundColor: const Color(0xFFFFF8F0),
+        body: Center(
+          child: CircularProgressIndicator(
+            color: Colors.blueAccent,
+            strokeWidth: 2,
+          ),
+        ),
+      );
+    }
 
     // Group items by category
     final Map<String, List<Map<String, dynamic>>> categorizedItems = {};
@@ -451,15 +487,23 @@ class _CanteenDashboardScreenState extends State<CanteenDashboardScreen> {
     }
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF7F9FC),
+      backgroundColor: const Color(0xFFFFF8F0), // Same as login screen
       appBar: AppBar(
-        backgroundColor: const Color(0xFF9B1C1C),
+        backgroundColor: Colors.white,
+        foregroundColor: Colors.black87,
+        elevation: 0,
         title: Text(
           name,
-          style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+          style: GoogleFonts.poppins(
+            fontWeight: FontWeight.w600,
+            color: Colors.black87,
+          ),
         ),
         actions: [
-          IconButton(icon: const Icon(Icons.refresh), onPressed: loadAllItems),
+          IconButton(
+            icon: Icon(Icons.refresh, color: Colors.black87),
+            onPressed: loadAllItems,
+          ),
         ],
       ),
       drawer: Drawer(
@@ -467,10 +511,8 @@ class _CanteenDashboardScreenState extends State<CanteenDashboardScreen> {
           padding: EdgeInsets.zero,
           children: [
             DrawerHeader(
-              decoration: const BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [Color(0xFF9B1C1C), Color(0xFFB71C1C)],
-                ),
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.8),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -479,12 +521,12 @@ class _CanteenDashboardScreenState extends State<CanteenDashboardScreen> {
                     onTap: uploadProfileImage,
                     child: CircleAvatar(
                       radius: 32,
-                      backgroundColor: Colors.white,
+                      backgroundColor: Colors.grey.shade200,
                       backgroundImage: img != null && img.isNotEmpty
                           ? NetworkImage(img)
                           : null,
                       child: img == null || img.isEmpty
-                          ? const Icon(Icons.camera_alt, color: Colors.grey)
+                          ? Icon(Icons.camera_alt, color: Colors.grey.shade600)
                           : null,
                     ),
                   ),
@@ -492,9 +534,17 @@ class _CanteenDashboardScreenState extends State<CanteenDashboardScreen> {
                   Text(
                     name,
                     style: GoogleFonts.poppins(
-                      color: Colors.white,
+                      color: Colors.black87,
                       fontSize: 20,
                       fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 5),
+                  Text(
+                    "Canteen Dashboard",
+                    style: GoogleFonts.poppins(
+                      color: Colors.black54,
+                      fontSize: 14,
                     ),
                   ),
                 ],
@@ -537,15 +587,15 @@ class _CanteenDashboardScreenState extends State<CanteenDashboardScreen> {
           children: [
             // Canteen info card
             Container(
-              padding: const EdgeInsets.all(18),
+              padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(15),
+                color: Colors.white.withOpacity(0.65),
+                borderRadius: BorderRadius.circular(22),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.1),
-                    blurRadius: 6,
-                    offset: const Offset(0, 3),
+                    color: Colors.black.withOpacity(0.10),
+                    blurRadius: 12,
+                    offset: const Offset(0, 6),
                   ),
                 ],
               ),
@@ -555,14 +605,14 @@ class _CanteenDashboardScreenState extends State<CanteenDashboardScreen> {
                     onTap: uploadProfileImage,
                     child: CircleAvatar(
                       radius: 40,
-                      backgroundColor: const Color(0xFFECECEC),
+                      backgroundColor: Colors.grey.shade200,
                       backgroundImage: img != null && img.isNotEmpty
                           ? NetworkImage(img)
                           : null,
                       child: img == null || img.isEmpty
-                          ? const Icon(
+                          ? Icon(
                               Icons.camera_alt,
-                              color: Colors.grey,
+                              color: Colors.grey.shade600,
                               size: 30,
                             )
                           : null,
@@ -578,7 +628,7 @@ class _CanteenDashboardScreenState extends State<CanteenDashboardScreen> {
                           style: GoogleFonts.poppins(
                             fontSize: 21,
                             fontWeight: FontWeight.w600,
-                            color: const Color(0xFF9B1C1C),
+                            color: Colors.black87,
                           ),
                         ),
                         const SizedBox(height: 4),
@@ -586,7 +636,7 @@ class _CanteenDashboardScreenState extends State<CanteenDashboardScreen> {
                           desc,
                           style: GoogleFonts.poppins(
                             fontSize: 14,
-                            color: Colors.grey[700],
+                            color: Colors.black54,
                           ),
                         ),
                       ],
@@ -601,7 +651,7 @@ class _CanteenDashboardScreenState extends State<CanteenDashboardScreen> {
               style: GoogleFonts.poppins(
                 fontSize: 22,
                 fontWeight: FontWeight.w600,
-                color: const Color(0xFF9B1C1C),
+                color: Colors.black87,
               ),
             ),
             const SizedBox(height: 10),
@@ -614,7 +664,7 @@ class _CanteenDashboardScreenState extends State<CanteenDashboardScreen> {
                   child: Text(
                     "No items added yet!",
                     style: GoogleFonts.poppins(
-                      color: Colors.grey,
+                      color: Colors.black54,
                       fontSize: 16,
                     ),
                   ),
@@ -636,6 +686,7 @@ class _CanteenDashboardScreenState extends State<CanteenDashboardScreen> {
                           style: GoogleFonts.poppins(
                             fontSize: 18,
                             fontWeight: FontWeight.w600,
+                            color: Colors.black87,
                           ),
                         ),
                         const SizedBox(height: 8),
@@ -650,6 +701,7 @@ class _CanteenDashboardScreenState extends State<CanteenDashboardScreen> {
                               borderRadius: BorderRadius.circular(12),
                             ),
                             margin: const EdgeInsets.symmetric(vertical: 5),
+                            color: Colors.white.withOpacity(0.8),
                             child: ListTile(
                               leading: ClipRRect(
                                 borderRadius: BorderRadius.circular(8),
@@ -662,21 +714,25 @@ class _CanteenDashboardScreenState extends State<CanteenDashboardScreen> {
                                         height: 55,
                                         fit: BoxFit.cover,
                                       )
-                                    : const Icon(
+                                    : Icon(
                                         Icons.fastfood,
                                         size: 40,
-                                        color: Colors.grey,
+                                        color: Colors.grey.shade600,
                                       ),
                               ),
                               title: Text(
                                 data['name'] ?? 'Unnamed Item',
                                 style: GoogleFonts.poppins(
                                   fontWeight: FontWeight.w600,
+                                  color: Colors.black87,
                                 ),
                               ),
                               subtitle: Text(
                                 "Price: Rs. $price",
-                                style: GoogleFonts.poppins(fontSize: 14),
+                                style: GoogleFonts.poppins(
+                                  fontSize: 14,
+                                  color: Colors.black54,
+                                ),
                               ),
                               trailing: Row(
                                 mainAxisSize: MainAxisSize.min,
@@ -701,9 +757,9 @@ class _CanteenDashboardScreenState extends State<CanteenDashboardScreen> {
                                     ),
                                   ),
                                   IconButton(
-                                    icon: const Icon(
+                                    icon: Icon(
                                       Icons.delete,
-                                      color: Colors.red,
+                                      color: Colors.red.shade400,
                                     ),
                                     onPressed: () => deleteItem(
                                       item['id'],
@@ -730,6 +786,7 @@ class _CanteenDashboardScreenState extends State<CanteenDashboardScreen> {
                           style: GoogleFonts.poppins(
                             fontSize: 18,
                             fontWeight: FontWeight.w600,
+                            color: Colors.black87,
                           ),
                         ),
                         const SizedBox(height: 8),
@@ -744,6 +801,7 @@ class _CanteenDashboardScreenState extends State<CanteenDashboardScreen> {
                               borderRadius: BorderRadius.circular(12),
                             ),
                             margin: const EdgeInsets.symmetric(vertical: 5),
+                            color: Colors.white.withOpacity(0.8),
                             child: ListTile(
                               leading: ClipRRect(
                                 borderRadius: BorderRadius.circular(8),
@@ -756,21 +814,25 @@ class _CanteenDashboardScreenState extends State<CanteenDashboardScreen> {
                                         height: 55,
                                         fit: BoxFit.cover,
                                       )
-                                    : const Icon(
+                                    : Icon(
                                         Icons.fastfood,
                                         size: 40,
-                                        color: Colors.grey,
+                                        color: Colors.grey.shade600,
                                       ),
                               ),
                               title: Text(
                                 data['name'] ?? 'Unnamed Item',
                                 style: GoogleFonts.poppins(
                                   fontWeight: FontWeight.w600,
+                                  color: Colors.black87,
                                 ),
                               ),
                               subtitle: Text(
                                 "Price: Rs. $price",
-                                style: GoogleFonts.poppins(fontSize: 14),
+                                style: GoogleFonts.poppins(
+                                  fontSize: 14,
+                                  color: Colors.black54,
+                                ),
                               ),
                               trailing: Row(
                                 mainAxisSize: MainAxisSize.min,
@@ -795,9 +857,9 @@ class _CanteenDashboardScreenState extends State<CanteenDashboardScreen> {
                                     ),
                                   ),
                                   IconButton(
-                                    icon: const Icon(
+                                    icon: Icon(
                                       Icons.delete,
-                                      color: Colors.red,
+                                      color: Colors.red.shade400,
                                     ),
                                     onPressed: () => deleteItem(
                                       item['id'],
@@ -829,7 +891,10 @@ class _CanteenDashboardScreenState extends State<CanteenDashboardScreen> {
       leading: Icon(icon, color: color),
       title: Text(
         title,
-        style: GoogleFonts.poppins(fontWeight: FontWeight.w500),
+        style: GoogleFonts.poppins(
+          fontWeight: FontWeight.w500,
+          color: Colors.black87,
+        ),
       ),
       onTap: onTap ?? () => Navigator.pop(context),
     );

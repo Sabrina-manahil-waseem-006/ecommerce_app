@@ -13,7 +13,8 @@ class SupervisorRequestScreen extends StatefulWidget {
       _SupervisorRequestScreenState();
 }
 
-class _SupervisorRequestScreenState extends State<SupervisorRequestScreen> {
+class _SupervisorRequestScreenState extends State<SupervisorRequestScreen>
+    with SingleTickerProviderStateMixin {
   final _supervisorService = SupervisorService();
   final _formKey = GlobalKey<FormState>();
 
@@ -32,6 +33,40 @@ class _SupervisorRequestScreenState extends State<SupervisorRequestScreen> {
   PlatformFile? uploadedFile;
 
   String? termsError;
+
+  late AnimationController _controller;
+  late Animation<double> _animation;
+
+  @override
+  void initState() {
+    super.initState();
+
+    // Animation for floating pastel circles
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 6),
+    )..repeat(reverse: true);
+
+    _animation =
+        Tween<double>(begin: -100, end: 100).animate(CurvedAnimation(
+      parent: _controller,
+      curve: Curves.easeInOut,
+    ));
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    nameController.dispose();
+    emailController.dispose();
+    passwordController.dispose();
+    phoneController.dispose();
+    cnicController.dispose();
+    jazzCashNameController.dispose();
+    jazzCashNumberController.dispose();
+    accountTypeController.dispose();
+    super.dispose();
+  }
 
   Future<void> pickFile() async {
     final result = await FilePicker.platform.pickFiles(type: FileType.any);
@@ -77,17 +112,24 @@ class _SupervisorRequestScreenState extends State<SupervisorRequestScreen> {
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Request submitted! Admin will review.")),
+          const SnackBar(
+            content: Text("Request submitted! Admin will review."),
+            backgroundColor: Colors.green,
+          ),
         );
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (_) => LoginScreen()),
+          MaterialPageRoute(builder: (_) => const LoginScreen()),
         );
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text("Error: $e")));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("Error: $e"),
+            backgroundColor: Colors.red,
+          ),
+        );
       }
     } finally {
       if (mounted) setState(() => isLoading = false);
@@ -108,19 +150,27 @@ class _SupervisorRequestScreenState extends State<SupervisorRequestScreen> {
       children: [
         TextFormField(
           controller: controller,
-          style: const TextStyle(color: Colors.white),
+          style: const TextStyle(color: Colors.black87),
           obscureText: obscureText,
           keyboardType: keyboardType,
           maxLines: maxLines,
           decoration: InputDecoration(
             labelText: label,
-            labelStyle: const TextStyle(color: Colors.white70),
+            labelStyle: const TextStyle(color: Colors.black54),
             filled: true,
-            fillColor: Colors.white.withOpacity(0.15),
+            fillColor: Colors.white.withOpacity(0.8),
             suffixIcon: suffixIcon,
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(15),
-              borderSide: BorderSide.none,
+              borderSide: const BorderSide(color: Colors.grey),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(15),
+              borderSide: const BorderSide(color: Colors.grey),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(15),
+              borderSide: const BorderSide(color: Colors.blueAccent),
             ),
           ),
           validator: validator,
@@ -132,184 +182,366 @@ class _SupervisorRequestScreenState extends State<SupervisorRequestScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final size = MediaQuery.of(context).size;
+
     return Scaffold(
+      backgroundColor: const Color(0xFFFFF8F0), // Same as login screen
       body: Stack(
-        fit: StackFit.expand,
         children: [
-          Image.asset(
-            'assets/form.jpeg',
-            fit: BoxFit.cover,
-            errorBuilder: (context, error, stackTrace) =>
-                const Center(child: Text("Image not found!")),
+          // 🌈 Floating Pastel Red Circle
+          AnimatedBuilder(
+            animation: _animation,
+            builder: (context, child) {
+              return Positioned(
+                top: _animation.value - 80,
+                left: -40,
+                child: child!,
+              );
+            },
+            child: Container(
+              width: 230,
+              height: 230,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: LinearGradient(
+                  colors: [Colors.red.shade100, Colors.red.shade300],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+              ),
+            ),
           ),
-          Container(color: Colors.black38),
+
+          // 🌈 Floating Pastel Blue Circle
+          AnimatedBuilder(
+            animation: _animation,
+            builder: (context, child) {
+              return Positioned(
+                bottom: _animation.value - 60,
+                right: -55,
+                child: child!,
+              );
+            },
+            child: Container(
+              width: 260,
+              height: 260,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: LinearGradient(
+                  colors: [Colors.blue.shade100, Colors.blue.shade300],
+                  begin: Alignment.topRight,
+                  end: Alignment.bottomLeft,
+                ),
+              ),
+            ),
+          ),
+
+          // 🌟 MAIN CONTENT
           Center(
             child: SingleChildScrollView(
-              child: Container(
-                padding: const EdgeInsets.all(25),
-                margin: const EdgeInsets.symmetric(horizontal: 20),
-                decoration: BoxDecoration(
-                  color: Colors.black.withOpacity(0.5),
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: Colors.white30),
-                ),
-                child: Form(
-                  key: _formKey,
-                  child: Column(
+              padding: EdgeInsets.symmetric(horizontal: size.width * 0.08),
+              child: Column(
+                children: [
+                  // App Branding
+                  Column(
                     children: [
-                      Text(
-                        "Supervisor Application",
-                        style: GoogleFonts.pacifico(
-                          fontSize: 28,
-                          color: Colors.white,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: 20),
-                      buildTextField(
-                        controller: nameController,
-                        label: "Full Name",
-                        validator: (val) =>
-                            val == null || val.isEmpty ? "Name is required" : null,
-                      ),
-                      buildTextField(
-                        controller: emailController,
-                        label: "Email",
-                        keyboardType: TextInputType.emailAddress,
-                        validator: (val) {
-                          if (val == null || val.isEmpty) return "Email is required";
-                          if (!RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(val)) {
-                            return "Enter a valid email";
-                          }
-                          return null;
-                        },
-                      ),
-                      buildTextField(
-                        controller: passwordController,
-                        label: "Password",
-                        obscureText: !isPasswordVisible,
-                        suffixIcon: IconButton(
-                          icon: Icon(
-                            isPasswordVisible
-                                ? Icons.visibility
-                                : Icons.visibility_off,
-                            color: Colors.white70,
-                          ),
-                          onPressed: () => setState(
-                            () => isPasswordVisible = !isPasswordVisible,
-                          ),
-                        ),
-                        validator: (val) {
-                          if (val == null || val.isEmpty)
-                            return "Password is required";
-                          if (val.length < 6)
-                            return "Password must be at least 6 characters";
-                          return null;
-                        },
-                      ),
-                      buildTextField(
-                        controller: phoneController,
-                        label: "Phone Number",
-                        keyboardType: TextInputType.phone,
-                        validator: (val) =>
-                            val == null || val.isEmpty ? "Phone required" : null,
-                      ),
-                      buildTextField(
-                        controller: cnicController,
-                        label: "CNIC",
-                        keyboardType: TextInputType.number,
-                        validator: (val) =>
-                            val == null || val.isEmpty ? "CNIC required" : null,
-                      ),
-                      const SizedBox(height: 20),
-                      buildTextField(
-                        controller: jazzCashNameController,
-                        label: "JazzCash Account Name",
-                        validator: (val) =>
-                            val == null || val.isEmpty ? "Name required" : null,
-                      ),
-                      buildTextField(
-                        controller: jazzCashNumberController,
-                        label: "JazzCash Number",
-                        keyboardType: TextInputType.phone,
-                        validator: (val) =>
-                            val == null || val.isEmpty ? "Number required" : null,
-                      ),
-                      buildTextField(
-                        controller: accountTypeController,
-                        label: "Account Type",
-                        validator: (val) =>
-                            val == null || val.isEmpty ? "Type required" : null,
-                      ),
+                      Icon(Icons.fastfood_rounded,
+                          size: 75, color: Colors.black87),
                       const SizedBox(height: 10),
-                      ElevatedButton(
-                        onPressed: pickFile,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.white.withOpacity(0.3),
-                        ),
-                        child: Text(
-                          uploadedFile != null
-                              ? "Selected: ${uploadedFile!.name}"
-                              : "Upload Proof / CNIC (Optional)",
-                          style: const TextStyle(color: Colors.white),
+
+                      Text(
+                        "NEDEats",
+                        style: GoogleFonts.poppins(
+                          color: Colors.black87,
+                          fontSize: 32,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 1.5,
                         ),
                       ),
-                      const SizedBox(height: 20),
-                      Row(
+
+                      const SizedBox(height: 5),
+
+                      Text(
+                        "Become a Supervisor",
+                        style: GoogleFonts.poppins(
+                          color: Colors.black54,
+                          fontSize: 16,
+                        ),
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(height: 35),
+
+                  // APPLICATION CARD
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(25),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.65),
+                      borderRadius: BorderRadius.circular(22),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.10),
+                          blurRadius: 12,
+                          offset: const Offset(0, 6),
+                        ),
+                      ],
+                    ),
+                    child: Form(
+                      key: _formKey,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Checkbox(
-                            value: agreedToTerms,
-                            onChanged: (val) =>
-                                setState(() => agreedToTerms = val ?? false),
-                            fillColor: MaterialStateProperty.all(Colors.white),
+                          Text("Supervisor Application",
+                              style: GoogleFonts.poppins(
+                                fontSize: 22,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.black87,
+                              )),
+
+                          const SizedBox(height: 5),
+
+                          Text("Fill in your details to apply",
+                              style: GoogleFonts.poppins(
+                                  color: Colors.black54, fontSize: 15)),
+
+                          const SizedBox(height: 25),
+
+                          // Personal Information Section
+                          Text("Personal Information",
+                              style: GoogleFonts.poppins(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.black87,
+                              )),
+
+                          const SizedBox(height: 15),
+
+                          buildTextField(
+                            controller: nameController,
+                            label: "Full Name",
+                            validator: (val) =>
+                                val == null || val.isEmpty ? "Name is required" : null,
                           ),
-                          const Expanded(
-                            child: Text(
-                              "I agree to the terms and conditions",
-                              style: TextStyle(color: Colors.white70),
+
+                          buildTextField(
+                            controller: emailController,
+                            label: "Email Address",
+                            keyboardType: TextInputType.emailAddress,
+                            validator: (val) {
+                              if (val == null || val.isEmpty) return "Email is required";
+                              if (!RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(val)) {
+                                return "Enter a valid email";
+                              }
+                              return null;
+                            },
+                          ),
+
+                          buildTextField(
+                            controller: passwordController,
+                            label: "Password",
+                            obscureText: !isPasswordVisible,
+                            suffixIcon: IconButton(
+                              icon: Icon(
+                                isPasswordVisible
+                                    ? Icons.visibility
+                                    : Icons.visibility_off,
+                                color: Colors.black54,
+                              ),
+                              onPressed: () => setState(
+                                () => isPasswordVisible = !isPasswordVisible,
+                              ),
+                            ),
+                            validator: (val) {
+                              if (val == null || val.isEmpty)
+                                return "Password is required";
+                              if (val.length < 6)
+                                return "Password must be at least 6 characters";
+                              return null;
+                            },
+                          ),
+
+                          buildTextField(
+                            controller: phoneController,
+                            label: "Phone Number",
+                            keyboardType: TextInputType.phone,
+                            validator: (val) =>
+                                val == null || val.isEmpty ? "Phone number is required" : null,
+                          ),
+
+                          buildTextField(
+                            controller: cnicController,
+                            label: "CNIC Number",
+                            keyboardType: TextInputType.number,
+                            validator: (val) =>
+                                val == null || val.isEmpty ? "CNIC is required" : null,
+                          ),
+
+                          const SizedBox(height: 20),
+
+                          // Payment Information Section
+                          Text("Payment Information",
+                              style: GoogleFonts.poppins(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.black87,
+                              )),
+
+                          const SizedBox(height: 15),
+
+                          buildTextField(
+                            controller: jazzCashNameController,
+                            label: "JazzCash Account Name",
+                            validator: (val) =>
+                                val == null || val.isEmpty ? "Account name is required" : null,
+                          ),
+
+                          buildTextField(
+                            controller: jazzCashNumberController,
+                            label: "JazzCash Number",
+                            keyboardType: TextInputType.phone,
+                            validator: (val) =>
+                                val == null || val.isEmpty ? "JazzCash number is required" : null,
+                          ),
+
+                          buildTextField(
+                            controller: accountTypeController,
+                            label: "Account Type",
+                            validator: (val) =>
+                                val == null || val.isEmpty ? "Account type is required" : null,
+                          ),
+
+                          const SizedBox(height: 20),
+
+                          // File Upload Section
+                          SizedBox(
+                            width: double.infinity,
+                            child: ElevatedButton(
+                              onPressed: pickFile,
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.white.withOpacity(0.9),
+                                padding: const EdgeInsets.symmetric(vertical: 14),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(15),
+                                  side: BorderSide(color: Colors.blueAccent.shade100),
+                                ),
+                              ),
+                              child: Text(
+                                uploadedFile != null
+                                    ? "Selected: ${uploadedFile!.name}"
+                                    : "Upload Proof / CNIC (Optional)",
+                                style: const TextStyle(
+                                  color: Colors.black87,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ),
+                          ),
+
+                          const SizedBox(height: 20),
+
+                          // Terms and Conditions
+                          Row(
+                            children: [
+                              Checkbox(
+                                value: agreedToTerms,
+                                onChanged: (val) =>
+                                    setState(() => agreedToTerms = val ?? false),
+                                fillColor: MaterialStateProperty.resolveWith((states) {
+                                  if (states.contains(MaterialState.selected)) {
+                                    return Colors.blueAccent;
+                                  }
+                                  return Colors.grey.shade300;
+                                }),
+                              ),
+                              const Expanded(
+                                child: Text(
+                                  "I agree to the terms and conditions",
+                                  style: TextStyle(
+                                    color: Colors.black87,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+
+                          if (termsError != null)
+                            Padding(
+                              padding: const EdgeInsets.only(top: 5),
+                              child: Text(
+                                termsError!,
+                                style: const TextStyle(
+                                  color: Colors.red,
+                                  fontSize: 13,
+                                ),
+                              ),
+                            ),
+
+                          const SizedBox(height: 25),
+
+                          // Submit Button
+                          isLoading
+                              ? const Center(
+                                  child: CircularProgressIndicator(
+                                    color: Colors.blueAccent,
+                                    strokeWidth: 2,
+                                  ),
+                                )
+                              : SizedBox(
+                                  width: double.infinity,
+                                  child: ElevatedButton(
+                                    onPressed: submitRequest,
+                                    style: ElevatedButton.styleFrom(
+                                      padding: const EdgeInsets.symmetric(vertical: 14),
+                                      backgroundColor: Colors.blueAccent,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(15),
+                                      ),
+                                    ),
+                                    child: const Text(
+                                      "Submit Application",
+                                      style: TextStyle(
+                                        fontSize: 17,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+
+                          const SizedBox(height: 15),
+
+                          Center(
+                            child: TextButton(
+                              onPressed: () {
+                                Navigator.pushReplacement(
+                                  context,
+                                  MaterialPageRoute(builder: (_) => const LoginScreen()),
+                                );
+                              },
+                              child: const Text(
+                                "Back to Login",
+                                style: TextStyle(
+                                  color: Colors.blueAccent,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
                             ),
                           ),
                         ],
                       ),
-                      if (termsError != null)
-                        Align(
-                          alignment: Alignment.centerLeft,
-                          child: Text(
-                            termsError!,
-                            style: const TextStyle(
-                              color: Colors.red,
-                              fontSize: 13,
-                            ),
-                          ),
-                        ),
-                      const SizedBox(height: 20),
-                      isLoading
-                          ? const CircularProgressIndicator(color: Colors.white)
-                          : SizedBox(
-                              width: double.infinity,
-                              child: ElevatedButton(
-                                onPressed: submitRequest,
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor:
-                                      Colors.white.withOpacity(0.3),
-                                  padding: const EdgeInsets.symmetric(
-                                      vertical: 15),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(15),
-                                  ),
-                                ),
-                                child: const Text(
-                                  "Submit Request",
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 18,
-                                  ),
-                                ),
-                              ),
-                            ),
-                    ],
+                    ),
                   ),
-                ),
+
+                  const SizedBox(height: 20),
+
+                  Text(
+                    "© 2025 NEDEats | Powered by NED University",
+                    style: GoogleFonts.poppins(fontSize: 13, color: Colors.black54),
+                  ),
+                ],
               ),
             ),
           ),

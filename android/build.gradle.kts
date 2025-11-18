@@ -1,6 +1,7 @@
 plugins {
     id("com.android.application")
-    id("org.jetbrains.kotlin.android")
+    id("org.jetbrains.kotlin.android") version "1.8.20" apply false
+    id("dev.flutter.flutter-gradle-plugin") version "0.0.1"
 }
 
 android {

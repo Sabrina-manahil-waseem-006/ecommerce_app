@@ -10,17 +10,41 @@ class UpdateItemsScreen extends StatefulWidget {
   final String canteenId;
   const UpdateItemsScreen({super.key, required this.canteenId});
 
+  @override
   State<UpdateItemsScreen> createState() => _UpdateItemsScreenState();
 }
 
-class _UpdateItemsScreenState extends State<UpdateItemsScreen> {
+class _UpdateItemsScreenState extends State<UpdateItemsScreen> 
+    with SingleTickerProviderStateMixin {
   bool isLoading = false;
   List<String> availableCategories = [];
+
+  late AnimationController _controller;
+  late Animation<double> _animation;
 
   @override
   void initState() {
     super.initState();
+
+    // Animation for floating pastel circles
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 6),
+    )..repeat(reverse: true);
+
+    _animation =
+        Tween<double>(begin: -100, end: 100).animate(CurvedAnimation(
+      parent: _controller,
+      curve: Curves.easeInOut,
+    ));
+
     loadCategories();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
   }
 
   Future<void> loadCategories() async {
@@ -35,7 +59,7 @@ class _UpdateItemsScreenState extends State<UpdateItemsScreen> {
       final cats = snapshot.docs.map((doc) => doc.id).toList();
       setState(() => availableCategories = cats);
     } catch (e) {
-      debugPrint("❌ Error loading categories: $e");
+      debugPrint("Error loading categories: $e");
     }
   }
 
@@ -63,11 +87,11 @@ class _UpdateItemsScreenState extends State<UpdateItemsScreen> {
         final data = jsonDecode(resBody);
         return data['secure_url'];
       } else {
-        print("❌ Cloudinary upload failed: $resBody");
+        print("Cloudinary upload failed: $resBody");
         return null;
       }
     } catch (e) {
-      print("❌ Upload error: $e");
+      print("Upload error: $e");
       return null;
     }
   }
@@ -112,12 +136,18 @@ class _UpdateItemsScreenState extends State<UpdateItemsScreen> {
         await itemsRef.doc(itemId).delete();
       }
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("🗑️ Item deleted successfully")),
+        const SnackBar(
+          content: Text("Item deleted successfully"),
+          backgroundColor: Colors.green,
+        ),
       );
     } catch (e) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text("❌ Error deleting item: $e")));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("Error deleting item: $e"),
+          backgroundColor: Colors.red,
+        ),
+      );
     }
   }
 
@@ -245,7 +275,7 @@ class _UpdateItemsScreenState extends State<UpdateItemsScreen> {
             ),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF9B1C1C),
+                backgroundColor: Colors.blueAccent,
               ),
               onPressed: () async {
                 setState(() => isLoading = true);
@@ -342,7 +372,10 @@ class _UpdateItemsScreenState extends State<UpdateItemsScreen> {
                 setState(() => isLoading = false);
                 Navigator.pop(context);
               },
-              child: const Text("Save Changes"),
+              child: const Text(
+                "Save Changes",
+                style: TextStyle(color: Colors.white),
+              ),
             ),
           ],
         ),
@@ -383,107 +416,254 @@ class _UpdateItemsScreenState extends State<UpdateItemsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFFFFF8F0), // Same as login screen
       appBar: AppBar(
-        title: const Text("Update Items"),
-        backgroundColor: const Color(0xFF9B1C1C),
+        title: Text(
+          "Update Items",
+          style: GoogleFonts.poppins(
+            fontWeight: FontWeight.w600,
+            color: Colors.black87,
+          ),
+        ),
+        backgroundColor: Colors.white,
+        foregroundColor: Colors.black87,
+        elevation: 0,
+        iconTheme: const IconThemeData(color: Colors.black87),
       ),
       body: Stack(
         children: [
-          StreamBuilder<List<Map<String, dynamic>>>(
-            stream: fetchAllItems(),
-            builder: (context, snapshot) {
-              if (!snapshot.hasData)
-                return const Center(child: CircularProgressIndicator());
-              final displayItems = snapshot.data!;
-              if (displayItems.isEmpty)
-                return const Center(child: Text("No items yet"));
-
-              return ListView.builder(
-                itemCount: displayItems.length,
-                itemBuilder: (context, i) {
-                  final item = displayItems[i];
-                  final data = item['data'] as Map<String, dynamic>;
-                  final parentCategory = item['parentCategory'] as String?;
-                  final price = (data['price'] is num)
-                      ? (data['price'] as num).toDouble()
-                      : 0.0;
-
-                  return Card(
-                    margin: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 6,
-                    ),
-                    child: ListTile(
-                      leading: ClipRRect(
-                        borderRadius: BorderRadius.circular(8),
-                        child:
-                            (data['imageUrl'] != null &&
-                                data['imageUrl'].toString().isNotEmpty)
-                            ? Image.network(
-                                data['imageUrl'],
-                                width: 60,
-                                height: 60,
-                                fit: BoxFit.cover,
-                              )
-                            : const Icon(
-                                Icons.fastfood,
-                                size: 50,
-                                color: Colors.grey,
-                              ),
-                      ),
-                      title: Text(data['name'] ?? 'Unnamed'),
-                      subtitle: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text("Rs. $price"),
-                          Text(
-                            data['isAvailable'] == true
-                                ? "Available"
-                                : "Not Available",
-                            style: TextStyle(
-                              color: data['isAvailable'] == true
-                                  ? Colors.green
-                                  : Colors.red,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                          if (parentCategory != null)
-                            Text(
-                              "Category: $parentCategory",
-                              style: const TextStyle(fontSize: 12),
-                            ),
-                        ],
-                      ),
-                      trailing: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          IconButton(
-                            icon: const Icon(Icons.edit, color: Colors.blue),
-                            onPressed: () => editItem(
-                              item['id'],
-                              data,
-                              parentCategory: parentCategory,
-                            ),
-                          ),
-                          IconButton(
-                            icon: const Icon(Icons.delete, color: Colors.red),
-                            onPressed: () => deleteItemWithConfirmation(
-                              item['id'],
-                              parentCategory: parentCategory,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  );
-                },
+          // 🌈 Floating Pastel Red Circle
+          AnimatedBuilder(
+            animation: _animation,
+            builder: (context, child) {
+              return Positioned(
+                top: _animation.value - 80,
+                left: -40,
+                child: child!,
               );
             },
+            child: Container(
+              width: 230,
+              height: 230,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: LinearGradient(
+                  colors: [Colors.red.shade100, Colors.red.shade300],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+              ),
+            ),
+          ),
+
+          // 🌈 Floating Pastel Blue Circle
+          AnimatedBuilder(
+            animation: _animation,
+            builder: (context, child) {
+              return Positioned(
+                bottom: _animation.value - 60,
+                right: -55,
+                child: child!,
+              );
+            },
+            child: Container(
+              width: 260,
+              height: 260,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: LinearGradient(
+                  colors: [Colors.blue.shade100, Colors.blue.shade300],
+                  begin: Alignment.topRight,
+                  end: Alignment.bottomLeft,
+                ),
+              ),
+            ),
+          ),
+
+          // 🌟 MAIN CONTENT
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  "Manage Items",
+                  style: GoogleFonts.poppins(
+                    fontSize: 22,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.black87,
+                  ),
+                ),
+                const SizedBox(height: 5),
+                Text(
+                  "Edit or delete your menu items",
+                  style: GoogleFonts.poppins(
+                    color: Colors.black54,
+                    fontSize: 14,
+                  ),
+                ),
+                const SizedBox(height: 20),
+                Expanded(
+                  child: StreamBuilder<List<Map<String, dynamic>>>(
+                    stream: fetchAllItems(),
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return Center(
+                          child: CircularProgressIndicator(
+                            color: Colors.blueAccent,
+                            strokeWidth: 2,
+                          ),
+                        );
+                      }
+                      
+                      if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                        return Center(
+                          child: Text(
+                            "No items added yet",
+                            style: GoogleFonts.poppins(
+                              color: Colors.black54,
+                              fontSize: 16,
+                            ),
+                          ),
+                        );
+                      }
+                      
+                      final displayItems = snapshot.data!;
+                      
+                      return ListView.builder(
+                        itemCount: displayItems.length,
+                        itemBuilder: (context, i) {
+                          final item = displayItems[i];
+                          final data = item['data'] as Map<String, dynamic>;
+                          final parentCategory = item['parentCategory'] as String?;
+                          final price = (data['price'] is num)
+                              ? (data['price'] as num).toDouble()
+                              : 0.0;
+
+                          return Container(
+                            margin: const EdgeInsets.symmetric(vertical: 6),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.65),
+                              borderRadius: BorderRadius.circular(15),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.08),
+                                  blurRadius: 8,
+                                  offset: const Offset(0, 3),
+                                ),
+                              ],
+                            ),
+                            child: ListTile(
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 8,
+                              ),
+                              leading: ClipRRect(
+                                borderRadius: BorderRadius.circular(10),
+                                child: Container(
+                                  width: 60,
+                                  height: 60,
+                                  color: Colors.grey.shade100,
+                                  child: (data['imageUrl'] != null &&
+                                      data['imageUrl'].toString().isNotEmpty)
+                                      ? Image.network(
+                                          data['imageUrl'],
+                                          width: 60,
+                                          height: 60,
+                                          fit: BoxFit.cover,
+                                        )
+                                      : Icon(
+                                          Icons.fastfood,
+                                          size: 30,
+                                          color: Colors.grey.shade600,
+                                        ),
+                                ),
+                              ),
+                              title: Text(
+                                data['name'] ?? 'Unnamed Item',
+                                style: GoogleFonts.poppins(
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.black87,
+                                ),
+                              ),
+                              subtitle: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    "Rs. $price",
+                                    style: GoogleFonts.poppins(
+                                      color: Colors.black87,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    data['isAvailable'] == true
+                                        ? "Available"
+                                        : "Not Available",
+                                    style: TextStyle(
+                                      color: data['isAvailable'] == true
+                                          ? Colors.green
+                                          : Colors.red,
+                                      fontWeight: FontWeight.w500,
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                  if (parentCategory != null)
+                                    Text(
+                                      "Category: $parentCategory",
+                                      style: TextStyle(
+                                        fontSize: 11,
+                                        color: Colors.black54,
+                                      ),
+                                    ),
+                                ],
+                              ),
+                              trailing: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  IconButton(
+                                    icon: Icon(
+                                      Icons.edit,
+                                      color: Colors.blueAccent,
+                                    ),
+                                    onPressed: () => editItem(
+                                      item['id'],
+                                      data,
+                                      parentCategory: parentCategory,
+                                    ),
+                                  ),
+                                  IconButton(
+                                    icon: Icon(
+                                      Icons.delete,
+                                      color: Colors.red.shade400,
+                                    ),
+                                    onPressed: () => deleteItemWithConfirmation(
+                                      item['id'],
+                                      parentCategory: parentCategory,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
+                        },
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ),
           ),
           if (isLoading)
             Container(
               color: Colors.black.withOpacity(0.3),
-              child: const Center(child: CircularProgressIndicator()),
+              child: Center(
+                child: CircularProgressIndicator(
+                  color: Colors.blueAccent,
+                  strokeWidth: 2,
+                ),
+              ),
             ),
         ],
       ),

@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '/models/cart_item.dart';
+import '/screens/user/checkout_screen.dart';
 import '/services/cart_service.dart';
 
 class UserCartScreen extends StatelessWidget {
-  final String canteenId; // required for canteen-specific carts
+  final String canteenId;
   final CartService _cartService = CartService();
 
   UserCartScreen({super.key, required this.canteenId});
@@ -54,8 +55,7 @@ class UserCartScreen extends StatelessWidget {
                       child: ListTile(
                         leading: ClipRRect(
                           borderRadius: BorderRadius.circular(8),
-                          child:
-                              (item.imageUrl != null &&
+                          child: (item.imageUrl != null &&
                                   item.imageUrl!.isNotEmpty)
                               ? Image.network(
                                   item.imageUrl!,
@@ -88,13 +88,13 @@ class UserCartScreen extends StatelessWidget {
                               onPressed: () {
                                 if (item.quantity > 1) {
                                   _cartService.updateQuantity(
-                                    canteenId, // ✅ Correct order
+                                    canteenId,
                                     item.itemId,
                                     item.quantity - 1,
                                   );
                                 } else {
                                   _cartService.removeFromCart(
-                                    canteenId, // ✅ Correct order
+                                    canteenId,
                                     item.itemId,
                                   );
                                 }
@@ -108,7 +108,7 @@ class UserCartScreen extends StatelessWidget {
                               icon: const Icon(Icons.add_circle_outline),
                               onPressed: () {
                                 _cartService.updateQuantity(
-                                  canteenId, // ✅ Correct order
+                                  canteenId,
                                   item.itemId,
                                   item.quantity + 1,
                                 );
@@ -148,18 +148,36 @@ class UserCartScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 10),
                     ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF9B1C1C),
+                        padding: const EdgeInsets.symmetric(
+                          vertical: 14,
+                          horizontal: 40,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
                       onPressed: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Checkout coming soon! 🧾'),
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => CheckoutScreen(
+                              canteenId: canteenId,
+                              items: items,
+                              total: total,
+                            ),
                           ),
                         );
                       },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF9B1C1C),
-                        minimumSize: const Size(double.infinity, 45),
+                      child: Text(
+                        "Proceed to Checkout",
+                        style: GoogleFonts.poppins(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white,
+                        ),
                       ),
-                      child: const Text("Proceed to Checkout"),
                     ),
                   ],
                 ),
