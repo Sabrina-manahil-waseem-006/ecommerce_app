@@ -21,63 +21,110 @@ class _AdminDashboardState extends State<AdminDashboard> {
     'Payments & Transactions',
   ];
 
+  // ---------------------- FIXED BUILD METHOD ------------------------
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF9F9FB),
+      backgroundColor: const Color(0xFFFEF6F0),
+
+
       appBar: AppBar(
-        backgroundColor: Colors.red.shade900,
-        title: const Text('Admin Dashboard',
-            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-        centerTitle: true,
         elevation: 0,
+        backgroundColor: const Color(0xFFFEF6F0),
+        centerTitle: true,
+        
+        title: const Text(
+          'Admin Dashboard',
+          style: TextStyle(
+            color: Color(0xFF2F63D8),
+            fontWeight: FontWeight.bold,
+            fontSize: 20,
+          ),
+        ),
       ),
-      drawer: _buildDrawer(),
-      body: _buildSelectedScreen(),
+
+      drawer: _buildNedDrawer(),
+
+      body: Stack(
+        children: [
+          // Background circle 1
+          Positioned(
+            top: -40,
+            left: -40,
+            child: Container(
+              width: 140,
+              height: 140,
+              decoration: const BoxDecoration(
+                color: Color(0xFFFFDAD6),
+                shape: BoxShape.circle,
+              ),
+            ),
+          ),
+
+          // Background circle 2
+          Positioned(
+            bottom: -50,
+            right: -40,
+            child: Container(
+              width: 200,
+              height: 200,
+              decoration: const BoxDecoration(
+                color: Color(0xFFD6ECFF),
+                shape: BoxShape.circle,
+              ),
+            ),
+          ),
+
+          // Main screen content
+          _buildSelectedScreen(),
+        ],
+      ),
     );
   }
 
-  // 🧭 Drawer
-  Drawer _buildDrawer() {
+  // ---------------------- DRAWER ------------------------
+  Drawer _buildNedDrawer() {
     return Drawer(
-      backgroundColor: const Color(0xFFF6F2F7),
+      backgroundColor: const Color(0xFFFEF6F0),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           DrawerHeader(
-            decoration: BoxDecoration(color: Colors.red.shade900),
+            decoration: const BoxDecoration(color: Color(0xFFFEF6F0)),
             child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
               children: const [
                 CircleAvatar(
                   radius: 35,
-                  backgroundImage: AssetImage('assets/admin_profile.png'),
+                  backgroundImage: AssetImage("assets/admin_profile.png"),
                 ),
                 SizedBox(height: 10),
                 Text(
-                  'Admin Panel',
+                  "Admin Panel",
                   style: TextStyle(
-                    color: Colors.white,
+                    color: Color(0xFF333333),
+                    fontWeight: FontWeight.bold,
                     fontSize: 18,
-                    fontWeight: FontWeight.w600,
                   ),
-                ),
+                )
               ],
             ),
           ),
+
           ...List.generate(menuOptions.length, (index) {
             return ListTile(
-              leading: Icon(_getIcon(index),
-                  color: selectedIndex == index
-                      ? Colors.red.shade900
-                      : Colors.black87),
+              leading: Icon(
+                _getIcon(index),
+                color: selectedIndex == index
+                    ? const Color(0xFF4A8CFF)
+                    : Colors.black54,
+              ),
               title: Text(
                 menuOptions[index],
                 style: TextStyle(
                   color: selectedIndex == index
-                      ? Colors.red.shade900
+                      ? const Color(0xFF4A8CFF)
                       : Colors.black87,
-                  fontWeight: selectedIndex == index ? FontWeight.bold : null,
+                  fontWeight:
+                      selectedIndex == index ? FontWeight.bold : FontWeight.normal,
                 ),
               ),
               onTap: () {
@@ -86,12 +133,13 @@ class _AdminDashboardState extends State<AdminDashboard> {
               },
             );
           }),
+
           const Spacer(),
           const Divider(),
+
           ListTile(
             leading: const Icon(Icons.logout, color: Colors.redAccent),
-            title: const Text('Logout',
-                style: TextStyle(color: Colors.redAccent)),
+            title: const Text("Logout", style: TextStyle(color: Colors.redAccent)),
             onTap: () {},
           ),
         ],
@@ -99,7 +147,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
     );
   }
 
-  // Sidebar icons
+  // ---------------------- DRAWER ICONS ------------------------
   IconData _getIcon(int index) {
     switch (index) {
       case 0:
@@ -117,7 +165,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
     }
   }
 
-  // Screen Switcher
+  // ---------------------- SCREEN SWITCHER ------------------------
   Widget _buildSelectedScreen() {
     switch (selectedIndex) {
       case 0:
@@ -134,7 +182,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
     }
   }
 
-  // 📊 Professional Dashboard Overview
+  // ---------------------- DASHBOARD OVERVIEW ------------------------
   Widget _buildDashboardOverview() {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
@@ -152,25 +200,19 @@ class _AdminDashboardState extends State<AdminDashboard> {
           ),
           const SizedBox(height: 20),
 
-          // Row 1: Key Metrics
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               _metricCard("Total Canteens", "8", Icons.store, Colors.blue),
               _metricCard("Supervisors", "12", Icons.people, Colors.orange),
-              _metricCard("Pending Orders", "23", Icons.receipt_long,
-                  Colors.purpleAccent),
-              _metricCard("Revenue", "₨45,000", Icons.monetization_on,
-                  Colors.green),
+              _metricCard("Pending Orders", "23", Icons.receipt_long, Colors.purpleAccent),
+              _metricCard("Revenue", "₨45,000", Icons.monetization_on, Colors.green),
             ],
           ),
           const SizedBox(height: 30),
 
-          // Activity Summary
-          const Text(
-            "Recent Activity",
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
-          ),
+          const Text("Recent Activity",
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
           const SizedBox(height: 10),
           _recentActivityCard("Supervisor Ahmed approved for Canteen #5"),
           _recentActivityCard("Order #142 marked as completed."),
@@ -178,69 +220,51 @@ class _AdminDashboardState extends State<AdminDashboard> {
 
           const SizedBox(height: 30),
 
-          // Insights Section
-          const Text(
-            "Insights & Analytics",
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
-          ),
+          const Text("Insights & Analytics",
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
           const SizedBox(height: 10),
-          _insightCard(
-            "System Uptime",
-            "99.8%",
-            "Performance is stable this week.",
-            Icons.timeline,
-            Colors.teal,
-          ),
+          _insightCard("System Uptime", "99.8%", "Stable this week",
+              Icons.timeline, Colors.teal),
           const SizedBox(height: 10),
-          _insightCard(
-            "Order Growth",
-            "+12%",
-            "Increase in orders compared to last week.",
-            Icons.trending_up,
-            Colors.indigo,
-          ),
+          _insightCard("Order Growth", "+12%", "Increase vs last week",
+              Icons.trending_up, Colors.indigo),
         ],
       ),
     );
   }
 
-  // Metric Card (compact)
   Widget _metricCard(String title, String value, IconData icon, Color color) {
     return Expanded(
       child: Container(
         margin: const EdgeInsets.symmetric(horizontal: 6),
-        padding: const EdgeInsets.all(18),
+        padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.grey.shade300,
-              blurRadius: 5,
-              offset: const Offset(0, 3),
-            )
+          borderRadius: BorderRadius.circular(22),
+          boxShadow: const [
+            BoxShadow(color: Colors.black12, blurRadius: 10, offset: Offset(0, 4)),
           ],
         ),
         child: Column(
           children: [
-            Icon(icon, size: 32, color: color),
-            const SizedBox(height: 8),
+            Icon(icon, size: 35, color: color),
+            const SizedBox(height: 10),
             Text(
               value,
               style: const TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black87),
+                fontSize: 22,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF333333),
+              ),
             ),
-            const SizedBox(height: 6),
-            Text(title, style: const TextStyle(color: Colors.black54)),
+            const SizedBox(height: 4),
+            Text(title, style: const TextStyle(color: Color(0xFF777777))),
           ],
         ),
       ),
     );
   }
 
-  // Recent Activity Item
   Widget _recentActivityCard(String message) {
     return Card(
       elevation: 1.5,
@@ -255,7 +279,6 @@ class _AdminDashboardState extends State<AdminDashboard> {
     );
   }
 
-  // Insight Card
   Widget _insightCard(
       String title, String value, String desc, IconData icon, Color color) {
     return Card(
@@ -285,16 +308,14 @@ class _AdminDashboardState extends State<AdminDashboard> {
             ),
             Text(value,
                 style: TextStyle(
-                    color: color,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16)),
+                    color: color, fontWeight: FontWeight.bold, fontSize: 16)),
           ],
         ),
       ),
     );
   }
 
-  // 👥 SUPERVISOR MANAGEMENT (same logic)
+  // ---------------------- SUPERVISOR MANAGEMENT ------------------------
   Widget _buildSupervisorManagement() {
     return DefaultTabController(
       length: 3,

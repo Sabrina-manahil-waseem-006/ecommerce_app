@@ -13,10 +13,22 @@ class UserCartScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFFF8EFE6), // Light NEDEats background
       appBar: AppBar(
-        title: const Text('Your Cart'),
-        backgroundColor: const Color(0xFF9B1C1C),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        centerTitle: true,
+        title: Text(
+          "Your Cart",
+          style: GoogleFonts.poppins(
+            fontWeight: FontWeight.w600,
+            fontSize: 20,
+            color: Colors.black87,
+          ),
+        ),
+        iconTheme: const IconThemeData(color: Colors.black87),
       ),
+
       body: StreamBuilder<List<CartItem>>(
         stream: _cartService.getCartItems(canteenId),
         builder: (context, snapshot) {
@@ -29,153 +41,197 @@ class UserCartScreen extends StatelessWidget {
           if (items.isEmpty) {
             return Center(
               child: Text(
-                "🛒 Your cart is empty for this canteen",
-                style: GoogleFonts.poppins(fontSize: 16, color: Colors.grey),
+                "🛒 Your cart is empty",
+                style: GoogleFonts.poppins(
+                  fontSize: 17,
+                  color: Colors.grey,
+                ),
               ),
             );
           }
 
-          double total = 0;
-          for (var i in items) {
-            total += i.price * i.quantity;
-          }
+          double total = items.fold(
+              0, (sum, item) => sum + (item.price * item.quantity));
 
           return Column(
             children: [
               Expanded(
                 child: ListView.builder(
+                  padding: const EdgeInsets.all(16),
                   itemCount: items.length,
                   itemBuilder: (context, i) {
                     final item = items[i];
-                    return Card(
-                      margin: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 6,
-                      ),
-                      child: ListTile(
-                        leading: ClipRRect(
-                          borderRadius: BorderRadius.circular(8),
-                          child: (item.imageUrl != null &&
-                                  item.imageUrl!.isNotEmpty)
-                              ? Image.network(
-                                  item.imageUrl!,
-                                  width: 50,
-                                  height: 50,
-                                  fit: BoxFit.cover,
-                                )
-                              : const Icon(
-                                  Icons.fastfood,
-                                  size: 40,
-                                  color: Colors.grey,
-                                ),
-                        ),
-                        title: Text(
-                          item.name,
-                          style: GoogleFonts.poppins(
-                            fontWeight: FontWeight.w600,
-                            fontSize: 15,
+
+                    return Container(
+                      margin: const EdgeInsets.only(bottom: 16),
+                      padding: const EdgeInsets.all(14),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(18),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.05),
+                            blurRadius: 10,
+                            offset: const Offset(0, 4),
                           ),
-                        ),
-                        subtitle: Text(
-                          "Rs. ${item.price}",
-                          style: const TextStyle(color: Colors.black54),
-                        ),
-                        trailing: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            IconButton(
-                              icon: const Icon(Icons.remove_circle_outline),
-                              onPressed: () {
-                                if (item.quantity > 1) {
+                        ],
+                      ),
+                      child: Row(
+                        children: [
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(12),
+                            child: (item.imageUrl != null &&
+                                    item.imageUrl!.isNotEmpty)
+                                ? Image.network(
+                                    item.imageUrl!,
+                                    width: 60,
+                                    height: 60,
+                                    fit: BoxFit.cover,
+                                  )
+                                : Container(
+                                    width: 60,
+                                    height: 60,
+                                    color: Colors.grey[200],
+                                    child: const Icon(
+                                      Icons.fastfood,
+                                      size: 32,
+                                      color: Colors.grey,
+                                    ),
+                                  ),
+                          ),
+
+                          const SizedBox(width: 16),
+
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  item.name,
+                                  style: GoogleFonts.poppins(
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 16,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  "Rs. ${item.price}",
+                                  style: GoogleFonts.poppins(
+                                    color: Colors.black54,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+
+                          Row(
+                            children: [
+                              IconButton(
+                                icon: const Icon(Icons.remove_circle_outline),
+                                onPressed: () {
+                                  if (item.quantity > 1) {
+                                    _cartService.updateQuantity(
+                                      canteenId,
+                                      item.itemId,
+                                      item.quantity - 1,
+                                    );
+                                  } else {
+                                    _cartService.removeFromCart(
+                                      canteenId,
+                                      item.itemId,
+                                    );
+                                  }
+                                },
+                              ),
+                              Text(
+                                "${item.quantity}",
+                                style: GoogleFonts.poppins(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              IconButton(
+                                icon: const Icon(Icons.add_circle_outline),
+                                onPressed: () {
                                   _cartService.updateQuantity(
                                     canteenId,
                                     item.itemId,
-                                    item.quantity - 1,
+                                    item.quantity + 1,
                                   );
-                                } else {
-                                  _cartService.removeFromCart(
-                                    canteenId,
-                                    item.itemId,
-                                  );
-                                }
-                              },
-                            ),
-                            Text(
-                              "${item.quantity}",
-                              style: const TextStyle(fontSize: 16),
-                            ),
-                            IconButton(
-                              icon: const Icon(Icons.add_circle_outline),
-                              onPressed: () {
-                                _cartService.updateQuantity(
-                                  canteenId,
-                                  item.itemId,
-                                  item.quantity + 1,
-                                );
-                              },
-                            ),
-                          ],
-                        ),
+                                },
+                              ),
+                            ],
+                          ),
+                        ],
                       ),
                     );
                   },
                 ),
               ),
+
+              // Bottom total summary
               Container(
-                padding: const EdgeInsets.all(16),
-                color: Colors.white,
+                padding: const EdgeInsets.all(22),
+                decoration: const BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.vertical(
+                    top: Radius.circular(26),
+                  ),
+                ),
                 child: Column(
                   children: [
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text(
+                        Text(
                           "Total:",
-                          style: TextStyle(
+                          style: GoogleFonts.poppins(
                             fontSize: 18,
-                            fontWeight: FontWeight.bold,
+                            fontWeight: FontWeight.w600,
                           ),
                         ),
                         Text(
                           "Rs. ${total.toStringAsFixed(0)}",
-                          style: const TextStyle(
+                          style: GoogleFonts.poppins(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
-                            color: Colors.red,
+                            color: Color(0xFF2D63E2), // Blue theme
                           ),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 10),
-                    ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF9B1C1C),
-                        padding: const EdgeInsets.symmetric(
-                          vertical: 14,
-                          horizontal: 40,
-                        ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => CheckoutScreen(
-                              canteenId: canteenId,
-                              items: items,
-                              total: total,
-                            ),
+
+                    const SizedBox(height: 16),
+
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF2D63E2),
+                          padding: const EdgeInsets.symmetric(vertical: 15),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(14),
                           ),
-                        );
-                      },
-                      child: Text(
-                        "Proceed to Checkout",
-                        style: GoogleFonts.poppins(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.white,
+                        ),
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => CheckoutScreen(
+                                canteenId: canteenId,
+                                items: items,
+                                total: total,
+                              ),
+                            ),
+                          );
+                        },
+                        child: Text(
+                          "Proceed to Checkout",
+                          style: GoogleFonts.poppins(
+                            fontWeight: FontWeight.w600,
+                            color: Colors.white,
+                            fontSize: 16,
+                          ),
                         ),
                       ),
                     ),

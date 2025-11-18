@@ -20,33 +20,29 @@ class CheckoutScreen extends StatelessWidget {
   final supabase = Supabase.instance.client;
   final FirebaseFirestore firestore = FirebaseFirestore.instance;
 
-  /// Function to process payment using Stripe Payment Sheet
   Future<void> processPayment(BuildContext context) async {
     try {
-      // 🔹 Show loading indicator
       showDialog(
         context: context,
         barrierDismissible: false,
         builder: (_) => const Center(child: CircularProgressIndicator()),
       );
 
-      // 1️⃣ Call Supabase Edge Function "payment_service" to get PaymentIntent
       final response = await supabase.functions.invoke('payment_service', body: {
-        'amount': (total * 100).toInt(), // Stripe expects amount in cents
+        'amount': (total * 100).toInt(),
         'currency': 'usd',
       });
 
       final clientSecret = response.data['clientSecret'];
 
       if (clientSecret == null) {
-        Navigator.pop(context); // Close loading
+        Navigator.pop(context);
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Payment initialization failed!')),
         );
         return;
       }
 
-      // 2️⃣ Initialize Stripe Payment Sheet
       await Stripe.instance.initPaymentSheet(
         paymentSheetParameters: SetupPaymentSheetParameters(
           paymentIntentClientSecret: clientSecret,
@@ -54,10 +50,8 @@ class CheckoutScreen extends StatelessWidget {
         ),
       );
 
-      // 3️⃣ Present Payment Sheet to user
       await Stripe.instance.presentPaymentSheet();
 
-      // 4️⃣ Payment success → save in Firebase
       await firestore.collection('payments').add({
         'canteenId': canteenId,
         'items': items
@@ -72,14 +66,12 @@ class CheckoutScreen extends StatelessWidget {
         'timestamp': FieldValue.serverTimestamp(),
       });
 
-      Navigator.pop(context); // Close loading
-
+      Navigator.pop(context);
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Payment successful & saved in Firebase!')),
       );
     } catch (e) {
-      Navigator.pop(context); // Close loading
-      print('Payment failed: $e');
+      Navigator.pop(context);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Payment failed: $e')),
       );
@@ -89,6 +81,7 @@ class CheckoutScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFFFFF8F5), // Soft pastel background
       appBar: AppBar(
         title: const Text('Checkout Summary'),
         backgroundColor: const Color(0xFF9B1C1C),
@@ -98,77 +91,101 @@ class CheckoutScreen extends StatelessWidget {
         child: Column(
           children: [
             Expanded(
-              child: ListView(
-                children: [
-                  Text(
-                    "Order Summary",
-                    style: GoogleFonts.poppins(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: const [
+                    BoxShadow(
+                      color: Colors.black12,
+                      blurRadius: 10,
+                      offset: Offset(0, 5),
                     ),
-                  ),
-                  const SizedBox(height: 10),
-
-                  // List of cart items
-                  ...items.map(
-                    (item) => ListTile(
-                      leading: ClipRRect(
-                        borderRadius: BorderRadius.circular(8),
-                        child: (item.imageUrl != null && item.imageUrl!.isNotEmpty)
-                            ? Image.network(
-                                item.imageUrl!,
-                                width: 45,
-                                height: 45,
-                                fit: BoxFit.cover,
-                              )
-                            : const Icon(Icons.fastfood, size: 40),
-                      ),
-                      title: Text(item.name),
-                      subtitle: Text(
-                        "Rs. ${item.price} × ${item.quantity} = Rs. ${(item.price * item.quantity).toStringAsFixed(0)}",
+                  ],
+                ),
+                padding: const EdgeInsets.all(20),
+                child: ListView(
+                  children: [
+                    Text(
+                      "Order Summary",
+                      style: GoogleFonts.poppins(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
-                  ),
+                    const SizedBox(height: 15),
 
-                  const Divider(height: 30),
-
-                  // Total
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Text(
-                        "Total:",
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
+                    // Cart items
+                    ...items.map(
+                      (item) => ListTile(
+                        contentPadding: EdgeInsets.zero,
+                        leading: ClipRRect(
+                          borderRadius: BorderRadius.circular(12),
+                          child: (item.imageUrl != null && item.imageUrl!.isNotEmpty)
+                              ? Image.network(
+                                  item.imageUrl!,
+                                  width: 50,
+                                  height: 50,
+                                  fit: BoxFit.cover,
+                                )
+                              : const Icon(Icons.fastfood, size: 50),
+                        ),
+                        title: Text(
+                          item.name,
+                          style: GoogleFonts.poppins(fontWeight: FontWeight.w500),
+                        ),
+                        subtitle: Text(
+                          "Rs. ${item.price} × ${item.quantity} = Rs. ${(item.price * item.quantity).toStringAsFixed(0)}",
                         ),
                       ),
-                      Text(
-                        "Rs. ${total.toStringAsFixed(0)}",
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.red,
+                    ),
+
+                    const Divider(height: 30, thickness: 1.2),
+
+                    // Total row
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          "Total:",
+                          style: GoogleFonts.poppins(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
-                      ),
-                    ],
-                  ),
-                ],
+                        Text(
+                          "Rs. ${total.toStringAsFixed(0)}",
+                          style: GoogleFonts.poppins(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: const Color(0xFF9B1C1C),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
             ),
 
             const SizedBox(height: 20),
 
-            // Pay Now Button with Stripe Payment Sheet
+            // Pay Now Button
             ElevatedButton(
               onPressed: () => processPayment(context),
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF9B1C1C),
-                minimumSize: const Size(double.infinity, 50),
+                minimumSize: const Size(double.infinity, 55),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(15),
+                ),
               ),
-              child: const Text(
+              child: Text(
                 "Pay Now 💳",
-                style: TextStyle(fontSize: 16),
+                style: GoogleFonts.poppins(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
             ),
           ],
