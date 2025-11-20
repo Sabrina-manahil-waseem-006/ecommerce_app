@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:ecommerce_app/models/cart_item.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter_stripe/flutter_stripe.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:crypto/crypto.dart';
+import 'dart:convert';
+import 'dart:math';
 
 class CheckoutScreen extends StatelessWidget {
   final String canteenId;
@@ -17,71 +18,19 @@ class CheckoutScreen extends StatelessWidget {
     required this.total,
   });
 
-  final supabase = Supabase.instance.client;
-  final FirebaseFirestore firestore = FirebaseFirestore.instance;
-
-  Future<void> processPayment(BuildContext context) async {
-    try {
-      showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (_) => const Center(child: CircularProgressIndicator()),
-      );
-
-      final response = await supabase.functions.invoke('payment_service', body: {
-        'amount': (total * 100).toInt(),
-        'currency': 'usd',
-      });
-
-      final clientSecret = response.data['clientSecret'];
-
-      if (clientSecret == null) {
-        Navigator.pop(context);
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Payment initialization failed!')),
-        );
-        return;
-      }
-
-      await Stripe.instance.initPaymentSheet(
-        paymentSheetParameters: SetupPaymentSheetParameters(
-          paymentIntentClientSecret: clientSecret,
-          merchantDisplayName: 'NedEats',
-        ),
-      );
-
-      await Stripe.instance.presentPaymentSheet();
-
-      await firestore.collection('payments').add({
-        'canteenId': canteenId,
-        'items': items
-            .map((e) => {
-                  'name': e.name,
-                  'price': e.price,
-                  'quantity': e.quantity,
-                })
-            .toList(),
-        'total': total,
-        'status': 'success',
-        'timestamp': FieldValue.serverTimestamp(),
-      });
-
-      Navigator.pop(context);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Payment successful & saved in Firebase!')),
-      );
-    } catch (e) {
-      Navigator.pop(context);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Payment failed: $e')),
-      );
-    }
+  void processPayment(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => PayFastPaymentPage(amount: total),
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFFFF8F5), // Soft pastel background
+      backgroundColor: const Color(0xFFFFF8F5),
       appBar: AppBar(
         title: const Text('Checkout Summary'),
         backgroundColor: const Color(0xFF9B1C1C),
@@ -114,14 +63,14 @@ class CheckoutScreen extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 15),
-
-                    // Cart items
                     ...items.map(
                       (item) => ListTile(
                         contentPadding: EdgeInsets.zero,
                         leading: ClipRRect(
                           borderRadius: BorderRadius.circular(12),
-                          child: (item.imageUrl != null && item.imageUrl!.isNotEmpty)
+                          child:
+                              (item.imageUrl != null &&
+                                  item.imageUrl!.isNotEmpty)
                               ? Image.network(
                                   item.imageUrl!,
                                   width: 50,
@@ -132,17 +81,16 @@ class CheckoutScreen extends StatelessWidget {
                         ),
                         title: Text(
                           item.name,
-                          style: GoogleFonts.poppins(fontWeight: FontWeight.w500),
+                          style: GoogleFonts.poppins(
+                            fontWeight: FontWeight.w500,
+                          ),
                         ),
                         subtitle: Text(
                           "Rs. ${item.price} × ${item.quantity} = Rs. ${(item.price * item.quantity).toStringAsFixed(0)}",
                         ),
                       ),
                     ),
-
                     const Divider(height: 30, thickness: 1.2),
-
-                    // Total row
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -167,10 +115,7 @@ class CheckoutScreen extends StatelessWidget {
                 ),
               ),
             ),
-
             const SizedBox(height: 20),
-
-            // Pay Now Button
             ElevatedButton(
               onPressed: () => processPayment(context),
               style: ElevatedButton.styleFrom(
@@ -181,7 +126,7 @@ class CheckoutScreen extends StatelessWidget {
                 ),
               ),
               child: Text(
-                "Pay Now 💳",
+                "Pay Now",
                 style: GoogleFonts.poppins(
                   fontSize: 18,
                   fontWeight: FontWeight.w600,
@@ -189,6 +134,63 @@ class CheckoutScreen extends StatelessWidget {
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class PayFastPaymentPage extends StatelessWidget {
+  final double amount;
+
+  PayFastPaymentPage({required this.amount});
+
+  String _generateOrderId() {
+    // Random 8-digit order ID
+    final random = Random();
+    return "ORDER${random.nextInt(99999999).toString().padLeft(8, '0')}";
+  }
+
+  Future<void> launchPayment() async {
+    String merchantId = "10043843";
+    String merchantKey = "2b6mq39mdxiuh";
+    String passphrase = "mysandbox123";
+
+    int amt = amount.round(); // PayFast sandbox expects integer amount
+    String orderId = _generateOrderId(); // Unique per order
+    String encodedItem = Uri.encodeComponent(orderId);
+
+    // Signature string in exact sandbox order
+    String signatureString =
+        "amount=$amt&item_name=$encodedItem&merchant_id=$merchantId&merchant_key=$merchantKey&passphrase=$passphrase";
+
+    String signature = md5.convert(utf8.encode(signatureString)).toString();
+
+    String url =
+        "https://sandbox.payfast.co.za/eng/process?"
+        "merchant_id=$merchantId"
+        "&merchant_key=$merchantKey"
+        "&amount=$amt"
+        "&item_name=$encodedItem"
+        "&signature=$signature";
+
+    Uri uri = Uri.parse(url);
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    } else {
+      throw "Could not launch PayFast URL";
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    Future.microtask(() => launchPayment());
+    return Scaffold(
+      appBar: AppBar(title: const Text("Redirecting to PayFast")),
+      body: const Center(
+        child: Text(
+          "Redirecting to PayFast Sandbox...",
+          style: TextStyle(fontSize: 18),
         ),
       ),
     );

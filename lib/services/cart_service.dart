@@ -13,7 +13,7 @@ class CartService {
     return user.uid;
   }
 
-  /// ✅ Add or update item in specific canteen's cart
+  ///  Add or update item in specific canteen's cart
   Future<void> addToCart(CartItem item) async {
     final cartRef = _firestore
         .collection('users')
