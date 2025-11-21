@@ -13,7 +13,7 @@ class SupervisorDashboard extends StatefulWidget {
   State<SupervisorDashboard> createState() => _SupervisorDashboardState();
 }
 
-class _SupervisorDashboardState extends State<SupervisorDashboard> 
+class _SupervisorDashboardState extends State<SupervisorDashboard>
     with SingleTickerProviderStateMixin {
   final _supervisorService = SupervisorService();
   bool isLoading = true;
@@ -34,11 +34,10 @@ class _SupervisorDashboardState extends State<SupervisorDashboard>
       duration: const Duration(seconds: 6),
     )..repeat(reverse: true);
 
-    _animation =
-        Tween<double>(begin: -100, end: 100).animate(CurvedAnimation(
-      parent: _controller,
-      curve: Curves.easeInOut,
-    ));
+    _animation = Tween<double>(
+      begin: -100,
+      end: 100,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
 
     loadData();
   }
@@ -75,7 +74,9 @@ class _SupervisorDashboardState extends State<SupervisorDashboard>
       context: context,
       builder: (context) => AlertDialog(
         title: const Text("Delete Canteen"),
-        content: const Text("Are you sure you want to delete this canteen? This action cannot be undone."),
+        content: const Text(
+          "Are you sure you want to delete this canteen? This action cannot be undone.",
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
@@ -83,9 +84,7 @@ class _SupervisorDashboardState extends State<SupervisorDashboard>
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(context, true),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.redAccent,
-            ),
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
             child: const Text("Delete", style: TextStyle(color: Colors.white)),
           ),
         ],
@@ -197,8 +196,11 @@ class _SupervisorDashboardState extends State<SupervisorDashboard>
                   // App Branding
                   Column(
                     children: [
-                      Icon(Icons.fastfood_rounded,
-                          size: 75, color: Colors.black87),
+                      Icon(
+                        Icons.fastfood_rounded,
+                        size: 75,
+                        color: Colors.black87,
+                      ),
                       const SizedBox(height: 10),
 
                       Text(
@@ -274,7 +276,9 @@ class _SupervisorDashboardState extends State<SupervisorDashboard>
                                   decoration: BoxDecoration(
                                     borderRadius: BorderRadius.circular(15),
                                     image: DecorationImage(
-                                      image: NetworkImage(canteenData!['imageUrl']),
+                                      image: NetworkImage(
+                                        canteenData!['imageUrl'],
+                                      ),
                                       fit: BoxFit.cover,
                                     ),
                                   ),
@@ -303,11 +307,12 @@ class _SupervisorDashboardState extends State<SupervisorDashboard>
                                         color: Colors.black87,
                                       ),
                                     ),
-                                    
+
                                     const SizedBox(height: 10),
-                                    
+
                                     Text(
-                                      canteenData!['description'] ?? 'No description provided',
+                                      canteenData!['description'] ??
+                                          'No description provided',
                                       style: GoogleFonts.poppins(
                                         fontSize: 16,
                                         color: Colors.black54,
@@ -334,7 +339,9 @@ class _SupervisorDashboardState extends State<SupervisorDashboard>
                                     ).then((_) => loadData());
                                   },
                                   style: ElevatedButton.styleFrom(
-                                    padding: const EdgeInsets.symmetric(vertical: 14),
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 14,
+                                    ),
                                     backgroundColor: Colors.blueAccent,
                                     shape: RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(15),
@@ -359,11 +366,15 @@ class _SupervisorDashboardState extends State<SupervisorDashboard>
                                 child: ElevatedButton(
                                   onPressed: deleteCanteen,
                                   style: ElevatedButton.styleFrom(
-                                    padding: const EdgeInsets.symmetric(vertical: 14),
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 14,
+                                    ),
                                     backgroundColor: Colors.white,
                                     shape: RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(15),
-                                      side: BorderSide(color: Colors.redAccent.shade400),
+                                      side: BorderSide(
+                                        color: Colors.redAccent.shade400,
+                                      ),
                                     ),
                                   ),
                                   child: Text(
@@ -445,7 +456,9 @@ class _SupervisorDashboardState extends State<SupervisorDashboard>
                                     ).then((_) => loadData());
                                   },
                                   style: ElevatedButton.styleFrom(
-                                    padding: const EdgeInsets.symmetric(vertical: 14),
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 14,
+                                    ),
                                     backgroundColor: Colors.blueAccent,
                                     shape: RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(15),
@@ -469,7 +482,10 @@ class _SupervisorDashboardState extends State<SupervisorDashboard>
 
                   Text(
                     "© 2025 NEDEats | Powered by NED University",
-                    style: GoogleFonts.poppins(fontSize: 13, color: Colors.black54),
+                    style: GoogleFonts.poppins(
+                      fontSize: 13,
+                      color: Colors.black54,
+                    ),
                   ),
                 ],
               ),

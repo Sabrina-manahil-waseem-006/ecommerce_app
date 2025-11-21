@@ -8,6 +8,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
 import 'update_items_screen.dart';
 import 'package:ecommerce_app/screens/canteen/update_items_screen.dart';
+import 'package:ecommerce_app/screens/canteen/canteen_orders_screen.dart';
 
 class CanteenDashboardScreen extends StatefulWidget {
   final String canteenId;
@@ -511,9 +512,7 @@ class _CanteenDashboardScreenState extends State<CanteenDashboardScreen> {
           padding: EdgeInsets.zero,
           children: [
             DrawerHeader(
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.8),
-              ),
+              decoration: BoxDecoration(color: Colors.white.withOpacity(0.8)),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -555,7 +554,29 @@ class _CanteenDashboardScreenState extends State<CanteenDashboardScreen> {
               Icons.delivery_dining,
               "Track Orders",
               Colors.blue,
+              onTap: () {
+                final supervisorId = canteenData?['supervisorId'] ?? '';
+                if (supervisorId.isEmpty) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text("Supervisor not assigned to this canteen"),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                  return;
+                }
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => CanteenOrdersScreen(
+                      canteenId: widget.canteenId,
+                      supervisorId: supervisorId,
+                    ),
+                  ),
+                );
+              },
             ),
+
             buildDrawerOption(Icons.bar_chart, "Statistics", Colors.green),
             buildDrawerOption(
               Icons.add_box,

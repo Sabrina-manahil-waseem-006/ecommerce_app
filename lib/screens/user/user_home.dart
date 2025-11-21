@@ -1,15 +1,15 @@
-// user_home_screens.dart
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:google_fonts/google_fonts.dart';
-
+import 'package:firebase_auth/firebase_auth.dart';
 import '/services/user_service.dart';
 import '/services/cart_service.dart';
 import '/models/cart_item.dart';
 import 'user_cart_screen.dart';
+import 'order_screen.dart';
 
-/// Theme constants matching your screenshot
-const Color _kBackground = Color(0xFFF8EFE6); // soft cream
+/// Theme constants
+const Color _kBackground = Color(0xFFF8EFE6);
 const Color _kTextDark = Color(0xFF2E2E2E);
 const Color _kAccentBlue = Color(0xFF2D63E2);
 const double _kCardRadius = 16.0;
@@ -67,6 +67,13 @@ class _UserHomeState extends State<UserHome> {
     );
   }
 
+  void _openOrdersScreen() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => UserOrdersScreen()),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -74,13 +81,12 @@ class _UserHomeState extends State<UserHome> {
       appBar: AppBar(
         backgroundColor: _kBackground,
         elevation: 0,
-        centerTitle: false,
         title: Text(
           'NEDEats',
           style: GoogleFonts.poppins(
             color: _kTextDark,
             fontWeight: FontWeight.bold,
-            fontSize: 20,
+            fontSize: 22,
           ),
         ),
         actions: [
@@ -88,17 +94,18 @@ class _UserHomeState extends State<UserHome> {
             onPressed: () {
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
-                  content: Text("Please open a canteen first to view its cart 🛒"),
+                  content: Text("Open a canteen first to view the cart 🛒"),
                 ),
               );
             },
             icon: const Icon(Icons.shopping_cart_outlined, color: Colors.black),
           ),
-          const SizedBox(width: 6),
-          const Padding(
-            padding: EdgeInsets.only(right: 12.0),
-            child: Icon(Icons.account_circle_outlined, color: Colors.black),
-          )
+          IconButton(
+            onPressed: _openOrdersScreen,
+            icon: const Icon(Icons.list_alt_outlined, color: Colors.black),
+            tooltip: "My Orders",
+          ),
+          const SizedBox(width: 8),
         ],
       ),
       body: _loading
@@ -108,27 +115,26 @@ class _UserHomeState extends State<UserHome> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // welcome + search row
                   Text(
                     "Welcome!",
                     style: GoogleFonts.poppins(
-                      fontSize: 22,
-                      fontWeight: FontWeight.w700,
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
                       color: _kTextDark,
                     ),
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 16),
                   _buildSearchField(),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 24),
                   Text(
                     'Available Canteens',
                     style: GoogleFonts.poppins(
-                      fontSize: 18,
+                      fontSize: 20,
                       fontWeight: FontWeight.w600,
                       color: _kTextDark,
                     ),
                   ),
-                  const SizedBox(height: 10),
+                  const SizedBox(height: 12),
                   Expanded(child: _buildCanteensGrid()),
                 ],
               ),
@@ -147,7 +153,7 @@ class _UserHomeState extends State<UserHome> {
         prefixIcon: const Icon(Icons.search),
         contentPadding: const EdgeInsets.symmetric(vertical: 0, horizontal: 12),
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(14),
           borderSide: BorderSide.none,
         ),
       ),
@@ -169,8 +175,8 @@ class _UserHomeState extends State<UserHome> {
       itemCount: _filtered.length,
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 2,
-        crossAxisSpacing: 15,
-        mainAxisSpacing: 15,
+        crossAxisSpacing: 18,
+        mainAxisSpacing: 18,
         childAspectRatio: 3 / 2,
       ),
       itemBuilder: (context, i) {
@@ -184,9 +190,9 @@ class _UserHomeState extends State<UserHome> {
               borderRadius: BorderRadius.circular(_kCardRadius),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
-                  blurRadius: 10,
-                  offset: const Offset(0, 4),
+                  color: Colors.black.withOpacity(0.07),
+                  blurRadius: 12,
+                  offset: const Offset(0, 6),
                 ),
               ],
             ),
@@ -195,28 +201,41 @@ class _UserHomeState extends State<UserHome> {
               children: [
                 Expanded(
                   child: imageUrl.isNotEmpty
-                      ? Image.network(
-                          imageUrl,
-                          width: double.infinity,
-                          fit: BoxFit.cover,
-                          errorBuilder: (context, _, __) => const Center(
-                            child: Icon(Icons.fastfood, size: 40, color: Colors.grey),
+                      ? ClipRRect(
+                          borderRadius: const BorderRadius.vertical(
+                            top: Radius.circular(_kCardRadius),
+                          ),
+                          child: Image.network(
+                            imageUrl,
+                            width: double.infinity,
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, _, __) => Container(
+                              color: Colors.grey[200],
+                              child: const Icon(
+                                Icons.fastfood,
+                                size: 40,
+                                color: Colors.grey,
+                              ),
+                            ),
                           ),
                         )
-                      : const Center(child: Icon(Icons.fastfood, size: 40)),
+                      : Container(
+                          color: Colors.grey[200],
+                          child: const Icon(Icons.fastfood, size: 40),
+                        ),
                 ),
                 Padding(
-                  padding: const EdgeInsets.all(8.0),
+                  padding: const EdgeInsets.all(10),
                   child: Text(
                     c['name'] ?? 'Unnamed',
                     style: GoogleFonts.poppins(
                       fontWeight: FontWeight.w600,
-                      fontSize: 15,
+                      fontSize: 16,
                       color: _kTextDark,
                     ),
                     overflow: TextOverflow.ellipsis,
                   ),
-                )
+                ),
               ],
             ),
           ),
@@ -225,6 +244,10 @@ class _UserHomeState extends State<UserHome> {
     );
   }
 }
+
+// The CanteenItemsScreen and ItemDetailScreen can remain mostly the same,
+// just apply consistent padding, card radius, and shadows similar to above.
+// Remove any redundant profile icons and update typography for professional look.
 
 /// ---------------------- CanteenItemsScreen ----------------------
 class CanteenItemsScreen extends StatefulWidget {
@@ -277,7 +300,9 @@ class _CanteenItemsScreenState extends State<CanteenItemsScreen> {
           .collection('canteens')
           .doc(widget.canteenId)
           .collection('items');
-      final snapshot = await itemsRef.orderBy('createdAt', descending: true).get();
+      final snapshot = await itemsRef
+          .orderBy('createdAt', descending: true)
+          .get();
 
       List<Map<String, dynamic>> itemsList = [];
 
@@ -355,7 +380,10 @@ class _CanteenItemsScreenState extends State<CanteenItemsScreen> {
         elevation: 0,
         title: Text(
           name,
-          style: GoogleFonts.poppins(color: _kTextDark, fontWeight: FontWeight.w600),
+          style: GoogleFonts.poppins(
+            color: _kTextDark,
+            fontWeight: FontWeight.w600,
+          ),
         ),
         actions: [
           IconButton(
@@ -368,7 +396,7 @@ class _CanteenItemsScreenState extends State<CanteenItemsScreen> {
                 ),
               );
             },
-          )
+          ),
         ],
       ),
       body: isLoading
@@ -397,7 +425,10 @@ class _CanteenItemsScreenState extends State<CanteenItemsScreen> {
                         padding: const EdgeInsets.all(40),
                         child: Text(
                           "No items found",
-                          style: GoogleFonts.poppins(color: Colors.grey, fontSize: 16),
+                          style: GoogleFonts.poppins(
+                            color: Colors.grey,
+                            fontSize: 16,
+                          ),
                         ),
                       ),
                     )
@@ -436,8 +467,10 @@ class _CanteenItemsScreenState extends State<CanteenItemsScreen> {
                             ),
                           ),
                           const SizedBox(height: 8),
-                          ...uncategorizedItems.map((item) => _buildItemTile(item)),
-                        ]
+                          ...uncategorizedItems.map(
+                            (item) => _buildItemTile(item),
+                          ),
+                        ],
                       ],
                     ),
                 ],
@@ -450,12 +483,17 @@ class _CanteenItemsScreenState extends State<CanteenItemsScreen> {
     return ClipRRect(
       borderRadius: BorderRadius.circular(_kCardRadius),
       child: imageUrl.isNotEmpty
-          ? Image.network(imageUrl, width: double.infinity, height: 140, fit: BoxFit.cover,
+          ? Image.network(
+              imageUrl,
+              width: double.infinity,
+              height: 140,
+              fit: BoxFit.cover,
               errorBuilder: (c, e, s) => Container(
                 height: 140,
                 color: Colors.grey[200],
                 child: const Icon(Icons.fastfood, size: 60, color: Colors.grey),
-              ))
+              ),
+            )
           : Container(
               height: 140,
               color: Colors.grey[200],
@@ -485,7 +523,9 @@ class _CanteenItemsScreenState extends State<CanteenItemsScreen> {
 
   Widget _buildItemTile(Map<String, dynamic> item) {
     final data = item['data'] as Map<String, dynamic>;
-    final price = (data['price'] is num) ? (data['price'] as num).toDouble() : 0.0;
+    final price = (data['price'] is num)
+        ? (data['price'] as num).toDouble()
+        : 0.0;
     final available = data['isAvailable'] ?? true;
 
     return GestureDetector(
@@ -495,10 +535,15 @@ class _CanteenItemsScreenState extends State<CanteenItemsScreen> {
         margin: const EdgeInsets.symmetric(vertical: 6),
         elevation: 3,
         child: ListTile(
-          contentPadding: const EdgeInsets.symmetric(vertical: 6, horizontal: 12),
+          contentPadding: const EdgeInsets.symmetric(
+            vertical: 6,
+            horizontal: 12,
+          ),
           leading: ClipRRect(
             borderRadius: BorderRadius.circular(8),
-            child: (data['imageUrl'] != null && (data['imageUrl'] as String).isNotEmpty)
+            child:
+                (data['imageUrl'] != null &&
+                    (data['imageUrl'] as String).isNotEmpty)
                 ? Image.network(
                     data['imageUrl'],
                     width: 55,
@@ -508,14 +553,22 @@ class _CanteenItemsScreenState extends State<CanteenItemsScreen> {
                       width: 55,
                       height: 55,
                       color: Colors.grey[200],
-                      child: const Icon(Icons.fastfood, size: 30, color: Colors.grey),
+                      child: const Icon(
+                        Icons.fastfood,
+                        size: 30,
+                        color: Colors.grey,
+                      ),
                     ),
                   )
                 : Container(
                     width: 55,
                     height: 55,
                     color: Colors.grey[200],
-                    child: const Icon(Icons.fastfood, size: 30, color: Colors.grey),
+                    child: const Icon(
+                      Icons.fastfood,
+                      size: 30,
+                      color: Colors.grey,
+                    ),
                   ),
           ),
           title: Text(
@@ -566,7 +619,9 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
     final name = widget.itemData['name'] ?? 'Unnamed Item';
     final imageUrl = (widget.itemData['imageUrl'] ?? '').toString();
     final description = (widget.itemData['description'] ?? '').toString();
-    final price = (widget.itemData['price'] is num) ? (widget.itemData['price'] as num).toDouble() : 0.0;
+    final price = (widget.itemData['price'] is num)
+        ? (widget.itemData['price'] as num).toDouble()
+        : 0.0;
     final isAvailable = widget.itemData['isAvailable'] ?? true;
 
     return Scaffold(
@@ -576,7 +631,10 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
         elevation: 0,
         title: Text(
           name,
-          style: GoogleFonts.poppins(color: _kTextDark, fontWeight: FontWeight.w600),
+          style: GoogleFonts.poppins(
+            color: _kTextDark,
+            fontWeight: FontWeight.w600,
+          ),
         ),
       ),
       body: SingleChildScrollView(
@@ -586,7 +644,13 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(18),
-            boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 8, offset: const Offset(0, 3))],
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black12,
+                blurRadius: 8,
+                offset: const Offset(0, 3),
+              ),
+            ],
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -604,42 +668,82 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
                         imageErrorBuilder: (context, _, __) => Container(
                           height: 230,
                           color: Colors.grey[300],
-                          child: const Icon(Icons.fastfood, size: 80, color: Colors.grey),
+                          child: const Icon(
+                            Icons.fastfood,
+                            size: 80,
+                            color: Colors.grey,
+                          ),
                         ),
                       )
                     : Container(
                         width: double.infinity,
                         height: 230,
                         color: Colors.grey[300],
-                        child: const Icon(Icons.fastfood, size: 80, color: Colors.grey),
+                        child: const Icon(
+                          Icons.fastfood,
+                          size: 80,
+                          color: Colors.grey,
+                        ),
                       ),
               ),
               const SizedBox(height: 18),
 
-              Text(name, style: GoogleFonts.poppins(fontSize: 24, fontWeight: FontWeight.bold, color: _kTextDark)),
+              Text(
+                name,
+                style: GoogleFonts.poppins(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: _kTextDark,
+                ),
+              ),
               const SizedBox(height: 8),
-              Text("Rs. ${price.toStringAsFixed(0)}",
-                  style: GoogleFonts.poppins(fontSize: 18, color: _kAccentBlue, fontWeight: FontWeight.w600)),
+              Text(
+                "Rs. ${price.toStringAsFixed(0)}",
+                style: GoogleFonts.poppins(
+                  fontSize: 18,
+                  color: _kAccentBlue,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
               const SizedBox(height: 12),
 
               Row(
                 children: [
-                  Icon(isAvailable ? Icons.check_circle : Icons.cancel, color: isAvailable ? Colors.green : Colors.red, size: 20),
+                  Icon(
+                    isAvailable ? Icons.check_circle : Icons.cancel,
+                    color: isAvailable ? Colors.green : Colors.red,
+                    size: 20,
+                  ),
                   const SizedBox(width: 6),
-                  Text(isAvailable ? "Available" : "Currently Unavailable",
-                      style: GoogleFonts.poppins(
-                        color: isAvailable ? Colors.green : Colors.red,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
-                      )),
+                  Text(
+                    isAvailable ? "Available" : "Currently Unavailable",
+                    style: GoogleFonts.poppins(
+                      color: isAvailable ? Colors.green : Colors.red,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
                 ],
               ),
 
               const SizedBox(height: 16),
               if (description.isNotEmpty) ...[
-                Text("Description", style: GoogleFonts.poppins(fontSize: 18, fontWeight: FontWeight.w600)),
+                Text(
+                  "Description",
+                  style: GoogleFonts.poppins(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
                 const SizedBox(height: 8),
-                Text(description, style: GoogleFonts.poppins(fontSize: 15, color: Colors.grey[800], height: 1.5)),
+                Text(
+                  description,
+                  style: GoogleFonts.poppins(
+                    fontSize: 15,
+                    color: Colors.grey[800],
+                    height: 1.5,
+                  ),
+                ),
                 const SizedBox(height: 18),
               ],
 
@@ -656,7 +760,10 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
                             if (quantity > 1) setState(() => quantity--);
                           },
                         ),
-                        Text('$quantity', style: GoogleFonts.poppins(fontSize: 16)),
+                        Text(
+                          '$quantity',
+                          style: GoogleFonts.poppins(fontSize: 16),
+                        ),
                         IconButton(
                           icon: const Icon(Icons.add_circle_outline),
                           onPressed: () => setState(() => quantity++),
@@ -678,15 +785,26 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
                         );
                         await _cartService.addToCart(cartItem);
                         ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text("$name added to cart 🛒"), behavior: SnackBarBehavior.floating),
+                          SnackBar(
+                            content: Text("$name added to cart 🛒"),
+                            behavior: SnackBarBehavior.floating,
+                          ),
                         );
                       },
                       icon: const Icon(Icons.add_shopping_cart),
-                      label: Text("Add to Cart", style: GoogleFonts.poppins(fontWeight: FontWeight.w600)),
+                      label: Text(
+                        "Add to Cart",
+                        style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+                      ),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: _kAccentBlue,
-                        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                        padding: const EdgeInsets.symmetric(
+                          vertical: 12,
+                          horizontal: 16,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14),
+                        ),
                       ),
                     ),
                   ],
@@ -695,10 +813,19 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
                 Container(
                   padding: const EdgeInsets.symmetric(vertical: 14),
                   alignment: Alignment.center,
-                  decoration: BoxDecoration(color: Colors.grey[200], borderRadius: BorderRadius.circular(14)),
-                  child: Text("Not Available",
-                      style: GoogleFonts.poppins(color: Colors.grey[700], fontWeight: FontWeight.w500, fontSize: 16)),
-                )
+                  decoration: BoxDecoration(
+                    color: Colors.grey[200],
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  child: Text(
+                    "Not Available",
+                    style: GoogleFonts.poppins(
+                      color: Colors.grey[700],
+                      fontWeight: FontWeight.w500,
+                      fontSize: 16,
+                    ),
+                  ),
+                ),
             ],
           ),
         ),

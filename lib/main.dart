@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart'; // your firebaseOptions
-import 'package:supabase_flutter/supabase_flutter.dart';
+//import 'package:supabase_flutter/supabase_flutter.dart';
 import 'screens/auth/splash_screen.dart';
 
 void main() async {
@@ -13,12 +13,12 @@ void main() async {
     print(' Firebase initialized');
 
     //  Supabase Initialization
-    await Supabase.initialize(
-      url: 'https://hiujojdqefjthfrlmosn.supabase.co', // Supabase project URL
-      anonKey:
-          'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhpdWpvamRxZWZqdGhmcmxtb3NuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI5MjI3MjMsImV4cCI6MjA3ODQ5ODcyM30.0h35RpTj0xjF_LFKWxo5GFAGeQx-_KZjIbNpcYanIUA', // replace with your Supabase anon key
-    );
-    print('Supabase initialized');
+    //await Supabase.initialize(
+    //  url: 'https://hiujojdqefjthfrlmosn.supabase.co', // Supabase project URL
+    //  anonKey:
+    //      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhpdWpvamRxZWZqdGhmcmxtb3NuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI5MjI3MjMsImV4cCI6MjA3ODQ5ODcyM30.0h35RpTj0xjF_LFKWxo5GFAGeQx-_KZjIbNpcYanIUA', // replace with your Supabase anon key
+    //);
+    //print('Supabase initialized');
 
     //  Stripe Initialization
     //  For Flutter Web, make sure <script src="https://js.stripe.com/v3/"></script>
