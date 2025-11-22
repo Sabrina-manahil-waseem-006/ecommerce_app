@@ -9,6 +9,8 @@ import 'package:http/http.dart' as http;
 import 'update_items_screen.dart';
 import 'package:ecommerce_app/screens/canteen/update_items_screen.dart';
 import 'package:ecommerce_app/screens/canteen/canteen_orders_screen.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import '../auth/login_screen.dart';
 
 class CanteenDashboardScreen extends StatefulWidget {
   final String canteenId;
@@ -65,6 +67,22 @@ class _CanteenDashboardScreenState extends State<CanteenDashboardScreen> {
           backgroundColor: Colors.red,
         ),
       );
+    }
+  }
+
+  // ---------------------- LOGOUT FUNCTION ------------------------
+  Future<void> _logout() async {
+    try {
+      await FirebaseAuth.instance.signOut();
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (_) => const LoginScreen()),
+        (route) => false,
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Logout failed: $e')));
     }
   }
 
@@ -549,7 +567,7 @@ class _CanteenDashboardScreenState extends State<CanteenDashboardScreen> {
                 ],
               ),
             ),
-            buildDrawerOption(Icons.receipt_long, "View Orders", Colors.orange),
+
             buildDrawerOption(
               Icons.delivery_dining,
               "Track Orders",
@@ -577,7 +595,21 @@ class _CanteenDashboardScreenState extends State<CanteenDashboardScreen> {
               },
             ),
 
-            buildDrawerOption(Icons.bar_chart, "Statistics", Colors.green),
+            buildDrawerOption(
+              Icons.bar_chart,
+              "Statistics",
+              Colors.green,
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) =>
+                        CanteenStatsScreen(canteenId: widget.canteenId),
+                  ),
+                );
+              },
+            ),
+
             buildDrawerOption(
               Icons.add_box,
               "Add Items",
@@ -598,9 +630,21 @@ class _CanteenDashboardScreenState extends State<CanteenDashboardScreen> {
                 );
               },
             ),
+            const Spacer(),
+            const Divider(), // Divider before logout
+
+            ListTile(
+              leading: const Icon(Icons.logout, color: Colors.redAccent),
+              title: const Text(
+                "Logout",
+                style: TextStyle(color: Colors.redAccent),
+              ),
+              onTap: _logout,
+            ),
           ],
         ),
       ),
+
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(18),
         child: Column(
@@ -918,6 +962,135 @@ class _CanteenDashboardScreenState extends State<CanteenDashboardScreen> {
         ),
       ),
       onTap: onTap ?? () => Navigator.pop(context),
+    );
+  }
+}
+
+class CanteenStatsScreen extends StatelessWidget {
+  final String canteenId;
+
+  const CanteenStatsScreen({super.key, required this.canteenId});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color(0xffFFF8F0),
+      appBar: AppBar(
+        backgroundColor: const Color(0xffFFF8F0),
+        elevation: 0,
+        iconTheme: const IconThemeData(color: Colors.black87),
+        title: Text(
+          "Statistics",
+          style: GoogleFonts.poppins(
+            fontWeight: FontWeight.w600,
+            color: Colors.black87,
+          ),
+        ),
+      ),
+      body: StreamBuilder<QuerySnapshot>(
+        stream: FirebaseFirestore.instance
+            .collection("canteens")
+            .doc(canteenId)
+            .collection("orders")
+            .snapshots(),
+        builder: (context, snapshot) {
+          if (!snapshot.hasData) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          final orders = snapshot.data!.docs;
+
+          int totalOrders = orders.length;
+          double totalSales = 0;
+          int completed = 0;
+          int pending = 0;
+          int preparing = 0;
+          int ready = 0;
+          int activeOrders = 0;
+
+          for (var doc in orders) {
+            final data = doc.data() as Map<String, dynamic>;
+
+            double price = (data["total"] ?? 0).toDouble();
+            totalSales += price;
+
+            String status = data["status"]?["order"] ?? "";
+
+            if (status == "completed") completed++;
+            if (status == "pending") pending++;
+            if (status == "preparing") preparing++;
+            if (status == "ready") ready++;
+
+            if (status != "completed") {
+              activeOrders++;
+            }
+          }
+
+          return Padding(
+            padding: const EdgeInsets.all(18),
+            child: GridView.count(
+              crossAxisCount: 2,
+              crossAxisSpacing: 14,
+              mainAxisSpacing: 14,
+              childAspectRatio: 1.22,
+              children: [
+                statsCard("Total Orders", totalOrders, Icons.shopping_bag),
+                statsCard(
+                  "Total Sales",
+                  "Rs $totalSales",
+                  Icons.currency_rupee,
+                ),
+                statsCard("Completed", completed, Icons.check_circle),
+                statsCard("Pending", pending, Icons.timelapse),
+                statsCard("Preparing", preparing, Icons.local_fire_department),
+                statsCard("Ready", ready, Icons.done_all),
+                statsCard("Active Orders", activeOrders, Icons.local_dining),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget statsCard(String title, dynamic value, IconData icon) {
+    return Container(
+      decoration: BoxDecoration(
+        color: const Color(0xffF8EFE6),
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.12),
+            blurRadius: 12,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
+      padding: const EdgeInsets.all(22),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, size: 36, color: const Color.fromARGB(255, 61, 40, 182)),
+          const SizedBox(height: 14),
+          Text(
+            title,
+            style: GoogleFonts.poppins(
+              fontSize: 15,
+              color: Colors.black87,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            value.toString(),
+            style: GoogleFonts.poppins(
+              fontSize: 28,
+              fontWeight: FontWeight.bold,
+              color: Colors.black,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

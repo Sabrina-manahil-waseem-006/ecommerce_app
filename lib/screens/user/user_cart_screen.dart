@@ -16,7 +16,12 @@ class UserCartScreen extends StatelessWidget {
       backgroundColor: const Color(0xFFF8EFE6), // Light NEDEats background
       appBar: AppBar(
         backgroundColor: Colors.transparent,
-        elevation: 0,
+        elevation: 1,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(
+            bottom: Radius.circular(24), // rounded bottom like modern apps
+          ),
+        ),
         centerTitle: true,
         title: Text(
           "Your Cart",
@@ -42,16 +47,15 @@ class UserCartScreen extends StatelessWidget {
             return Center(
               child: Text(
                 "🛒 Your cart is empty",
-                style: GoogleFonts.poppins(
-                  fontSize: 17,
-                  color: Colors.grey,
-                ),
+                style: GoogleFonts.poppins(fontSize: 17, color: Colors.grey),
               ),
             );
           }
 
           double total = items.fold(
-              0, (sum, item) => sum + (item.price * item.quantity));
+            0,
+            (sum, item) => sum + (item.price * item.quantity),
+          );
 
           return Column(
             children: [
@@ -80,7 +84,8 @@ class UserCartScreen extends StatelessWidget {
                         children: [
                           ClipRRect(
                             borderRadius: BorderRadius.circular(12),
-                            child: (item.imageUrl != null &&
+                            child:
+                                (item.imageUrl != null &&
                                     item.imageUrl!.isNotEmpty)
                                 ? Image.network(
                                     item.imageUrl!,
@@ -174,9 +179,7 @@ class UserCartScreen extends StatelessWidget {
                 padding: const EdgeInsets.all(22),
                 decoration: const BoxDecoration(
                   color: Colors.white,
-                  borderRadius: BorderRadius.vertical(
-                    top: Radius.circular(26),
-                  ),
+                  borderRadius: BorderRadius.vertical(top: Radius.circular(26)),
                 ),
                 child: Column(
                   children: [

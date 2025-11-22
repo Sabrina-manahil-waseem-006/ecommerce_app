@@ -7,6 +7,7 @@ import '/services/cart_service.dart';
 import '/models/cart_item.dart';
 import 'user_cart_screen.dart';
 import 'order_screen.dart';
+import '../auth/login_screen.dart';
 
 /// Theme constants
 const Color _kBackground = Color(0xFFF8EFE6);
@@ -67,6 +68,15 @@ class _UserHomeState extends State<UserHome> {
     );
   }
 
+  Future<void> _logout() async {
+    await FirebaseAuth.instance.signOut();
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(builder: (_) => const LoginScreen()),
+      (route) => false,
+    );
+  }
+
   void _openOrdersScreen() {
     Navigator.push(
       context,
@@ -77,37 +87,68 @@ class _UserHomeState extends State<UserHome> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: _kBackground,
-      appBar: AppBar(
-        backgroundColor: _kBackground,
-        elevation: 0,
-        title: Text(
-          'NEDEats',
-          style: GoogleFonts.poppins(
-            color: _kTextDark,
-            fontWeight: FontWeight.bold,
-            fontSize: 22,
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(60),
+        child: AppBar(
+          backgroundColor: _kBackground,
+          elevation: 1, // subtle shadow for depth
+          shape: const RoundedRectangleBorder(
+            borderRadius: BorderRadius.vertical(
+              bottom: Radius.circular(24), // rounded bottom like modern apps
+            ),
           ),
-        ),
-        actions: [
-          IconButton(
-            onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text("Open a canteen first to view the cart 🛒"),
+          title: Row(
+            children: [
+              // Optional small logo/icon on the left
+              Container(
+                padding: const EdgeInsets.all(6),
+                decoration: BoxDecoration(
+                  color: _kAccentBlue.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
                 ),
-              );
-            },
-            icon: const Icon(Icons.shopping_cart_outlined, color: Colors.black),
+                child: Icon(
+                  Icons.restaurant_menu,
+                  color: _kAccentBlue,
+                  size: 25,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Text(
+                'NEDEats',
+                style: GoogleFonts.poppins(
+                  color: _kAccentBlue, // title color stands out
+                  fontWeight: FontWeight.bold,
+                  fontSize: 26,
+                ),
+              ),
+            ],
           ),
-          IconButton(
-            onPressed: _openOrdersScreen,
-            icon: const Icon(Icons.list_alt_outlined, color: Colors.black),
-            tooltip: "My Orders",
-          ),
-          const SizedBox(width: 8),
-        ],
+          actions: [
+            IconButton(
+              onPressed: () {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text("Open a canteen first to view the cart 🛒"),
+                  ),
+                );
+              },
+              icon: const Icon(Icons.shopping_cart_outlined, color: _kTextDark),
+            ),
+            IconButton(
+              onPressed: _openOrdersScreen,
+              icon: const Icon(Icons.list_alt_outlined, color: _kTextDark),
+              tooltip: "My Orders",
+            ),
+            IconButton(
+              onPressed: _logout,
+              icon: const Icon(Icons.logout, color: _kTextDark),
+              tooltip: "Logout",
+            ),
+            const SizedBox(width: 8),
+          ],
+        ),
       ),
+
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : Padding(
@@ -377,7 +418,12 @@ class _CanteenItemsScreenState extends State<CanteenItemsScreen> {
       backgroundColor: _kBackground,
       appBar: AppBar(
         backgroundColor: _kBackground,
-        elevation: 0,
+        elevation: 1,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(
+            bottom: Radius.circular(24), // rounded bottom like modern apps
+          ),
+        ),
         title: Text(
           name,
           style: GoogleFonts.poppins(
@@ -628,7 +674,12 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
       backgroundColor: _kBackground,
       appBar: AppBar(
         backgroundColor: _kBackground,
-        elevation: 0,
+        elevation: 1,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(
+            bottom: Radius.circular(24), // rounded bottom like modern apps
+          ),
+        ),
         title: Text(
           name,
           style: GoogleFonts.poppins(

@@ -77,7 +77,12 @@ class UserOrdersScreen extends StatelessWidget {
       backgroundColor: _kBackground,
       appBar: AppBar(
         backgroundColor: _kBackground,
-        elevation: 0,
+        elevation: 1,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(
+            bottom: Radius.circular(24), // rounded bottom like modern apps
+          ),
+        ),
         title: Text(
           'My Orders',
           style: GoogleFonts.poppins(

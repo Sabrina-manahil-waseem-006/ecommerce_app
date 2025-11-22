@@ -5,6 +5,8 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../services/supervisor_service.dart';
 import '../canteen/canteen_registration_screen.dart';
 import '../canteen/canteen_management_screen.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import '../auth/login_screen.dart';
 
 class SupervisorDashboard extends StatefulWidget {
   const SupervisorDashboard({super.key});
@@ -65,6 +67,21 @@ class _SupervisorDashboardState extends State<SupervisorDashboard>
       canteenData = canteen;
       isLoading = false;
     });
+  }
+
+  Future<void> _logout() async {
+    try {
+      await FirebaseAuth.instance.signOut();
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (_) => const LoginScreen()),
+        (route) => false,
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Logout failed: $e')));
+    }
   }
 
   Future<void> deleteCanteen() async {
@@ -136,7 +153,7 @@ class _SupervisorDashboardState extends State<SupervisorDashboard>
       backgroundColor: const Color(0xFFFFF8F0), // Same as login screen
       body: Stack(
         children: [
-          // 🌈 Floating Pastel Red Circle
+          //  Floating Pastel Red Circle
           AnimatedBuilder(
             animation: _animation,
             builder: (context, child) {
@@ -160,7 +177,7 @@ class _SupervisorDashboardState extends State<SupervisorDashboard>
             ),
           ),
 
-          // 🌈 Floating Pastel Blue Circle
+          // Floating Pastel Blue Circle
           AnimatedBuilder(
             animation: _animation,
             builder: (context, child) {
@@ -184,7 +201,7 @@ class _SupervisorDashboardState extends State<SupervisorDashboard>
             ),
           ),
 
-          // 🌟 MAIN CONTENT
+          // MAIN CONTENT
           Center(
             child: SingleChildScrollView(
               padding: EdgeInsets.symmetric(
