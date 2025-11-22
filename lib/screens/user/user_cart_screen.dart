@@ -13,21 +13,17 @@ class UserCartScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF8EFE6), // Light NEDEats background
+      backgroundColor: Color(0xFFF5F5F5), // Same pastel theme
+
       appBar: AppBar(
+        elevation: 0,
         backgroundColor: Colors.transparent,
-        elevation: 1,
-        shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(
-            bottom: Radius.circular(24), // rounded bottom like modern apps
-          ),
-        ),
         centerTitle: true,
         title: Text(
           "Your Cart",
           style: GoogleFonts.poppins(
-            fontWeight: FontWeight.w600,
             fontSize: 20,
+            fontWeight: FontWeight.w600,
             color: Colors.black87,
           ),
         ),
@@ -37,12 +33,11 @@ class UserCartScreen extends StatelessWidget {
       body: StreamBuilder<List<CartItem>>(
         stream: _cartService.getCartItems(canteenId),
         builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
+          if (!snapshot.hasData) {
             return const Center(child: CircularProgressIndicator());
           }
 
-          final items = snapshot.data ?? [];
-
+          final items = snapshot.data!;
           if (items.isEmpty) {
             return Center(
               child: Text(
@@ -59,186 +54,243 @@ class UserCartScreen extends StatelessWidget {
 
           return Column(
             children: [
+              // --------------------------
+              // MAIN CARD UI (JUST LIKE CHECKOUT PAGE)
+              // --------------------------
               Expanded(
-                child: ListView.builder(
-                  padding: const EdgeInsets.all(16),
-                  itemCount: items.length,
-                  itemBuilder: (context, i) {
-                    final item = items[i];
-
-                    return Container(
-                      margin: const EdgeInsets.only(bottom: 16),
-                      padding: const EdgeInsets.all(14),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(18),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.05),
-                            blurRadius: 10,
-                            offset: const Offset(0, 4),
+                child: Container(
+                  margin: const EdgeInsets.all(18),
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(26),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.08),
+                        blurRadius: 12,
+                        offset: const Offset(0, 6),
+                      ),
+                    ],
+                  ),
+                  child: ListView(
+                    children: [
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.shopping_cart,
+                            color: Colors.deepOrange,
+                            size: 22,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            "Cart Items",
+                            style: GoogleFonts.poppins(
+                              fontSize: 20,
+                              fontWeight: FontWeight.w700,
+                            ),
                           ),
                         ],
                       ),
-                      child: Row(
-                        children: [
-                          ClipRRect(
-                            borderRadius: BorderRadius.circular(12),
-                            child:
-                                (item.imageUrl != null &&
-                                    item.imageUrl!.isNotEmpty)
-                                ? Image.network(
-                                    item.imageUrl!,
-                                    width: 60,
-                                    height: 60,
-                                    fit: BoxFit.cover,
-                                  )
-                                : Container(
-                                    width: 60,
-                                    height: 60,
-                                    color: Colors.grey[200],
-                                    child: const Icon(
-                                      Icons.fastfood,
-                                      size: 32,
-                                      color: Colors.grey,
-                                    ),
-                                  ),
-                          ),
 
-                          const SizedBox(width: 16),
+                      const SizedBox(height: 18),
 
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  item.name,
-                                  style: GoogleFonts.poppins(
-                                    fontWeight: FontWeight.w600,
-                                    fontSize: 16,
-                                  ),
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  "Rs. ${item.price}",
-                                  style: GoogleFonts.poppins(
-                                    color: Colors.black54,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-
-                          Row(
-                            children: [
-                              IconButton(
-                                icon: const Icon(Icons.remove_circle_outline),
-                                onPressed: () {
-                                  if (item.quantity > 1) {
-                                    _cartService.updateQuantity(
-                                      canteenId,
-                                      item.itemId,
-                                      item.quantity - 1,
-                                    );
-                                  } else {
-                                    _cartService.removeFromCart(
-                                      canteenId,
-                                      item.itemId,
-                                    );
-                                  }
-                                },
-                              ),
-                              Text(
-                                "${item.quantity}",
-                                style: GoogleFonts.poppins(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                              IconButton(
-                                icon: const Icon(Icons.add_circle_outline),
-                                onPressed: () {
-                                  _cartService.updateQuantity(
-                                    canteenId,
-                                    item.itemId,
-                                    item.quantity + 1,
-                                  );
-                                },
+                      // --------------------------
+                      // CART ITEMS LIST
+                      // --------------------------
+                      ...items.map((item) {
+                        return Container(
+                          margin: const EdgeInsets.only(bottom: 14),
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(20),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.05),
+                                blurRadius: 8,
+                                offset: const Offset(0, 4),
                               ),
                             ],
                           ),
-                        ],
+                          child: Row(
+                            children: [
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(12),
+                                child:
+                                    (item.imageUrl != null &&
+                                        item.imageUrl!.isNotEmpty)
+                                    ? Image.network(
+                                        item.imageUrl!,
+                                        width: 55,
+                                        height: 55,
+                                        fit: BoxFit.cover,
+                                      )
+                                    : Container(
+                                        width: 55,
+                                        height: 55,
+                                        color: Colors.grey.shade200,
+                                        child: const Icon(Icons.fastfood),
+                                      ),
+                              ),
+
+                              const SizedBox(width: 12),
+
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      item.name,
+                                      style: GoogleFonts.poppins(
+                                        fontSize: 15,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                    Text(
+                                      "Rs ${item.price}",
+                                      style: GoogleFonts.poppins(
+                                        fontSize: 13,
+                                        color: Colors.black54,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+
+                              // QUANTITY BUTTONS
+                              Row(
+                                children: [
+                                  IconButton(
+                                    icon: Icon(
+                                      Icons.remove_circle_outline,
+                                      color: Colors.deepOrange,
+                                    ),
+                                    onPressed: () {
+                                      if (item.quantity > 1) {
+                                        _cartService.updateQuantity(
+                                          canteenId,
+                                          item.itemId,
+                                          item.quantity - 1,
+                                        );
+                                      } else {
+                                        _cartService.removeFromCart(
+                                          canteenId,
+                                          item.itemId,
+                                        );
+                                      }
+                                    },
+                                  ),
+                                  Text(
+                                    "${item.quantity}",
+                                    style: GoogleFonts.poppins(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  IconButton(
+                                    icon: Icon(
+                                      Icons.add_circle_outline,
+                                      color: Colors.deepOrange,
+                                    ),
+                                    onPressed: () {
+                                      _cartService.updateQuantity(
+                                        canteenId,
+                                        item.itemId,
+                                        item.quantity + 1,
+                                      );
+                                    },
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        );
+                      }),
+
+                      const SizedBox(height: 12),
+                      const Divider(thickness: 1, height: 30),
+                      const SizedBox(height: 12),
+
+                      // --------------------------
+                      // TOTAL AMOUNT BOX (Same UI as Checkout)
+                      // --------------------------
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          vertical: 16,
+                          horizontal: 20,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.deepOrange.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(
+                            color: Colors.deepOrange.withOpacity(0.4),
+                            width: 1.3,
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              "Total Amount",
+                              style: GoogleFonts.poppins(
+                                fontSize: 17,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            Text(
+                              "Rs ${total.toStringAsFixed(0)}",
+                              style: GoogleFonts.poppins(
+                                fontSize: 19,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.deepOrange,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-                    );
-                  },
+                    ],
+                  ),
                 ),
               ),
 
-              // Bottom total summary
-              Container(
-                padding: const EdgeInsets.all(22),
-                decoration: const BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.vertical(top: Radius.circular(26)),
-                ),
-                child: Column(
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          "Total:",
-                          style: GoogleFonts.poppins(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w600,
+              // --------------------------
+              // BOTTOM BUTTON (Same as Pay Now button UI)
+              // --------------------------
+              Padding(
+                padding: const EdgeInsets.fromLTRB(18, 0, 18, 18),
+                child: SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => CheckoutScreen(
+                            canteenId: canteenId,
+                            items: items,
+                            total: total,
                           ),
                         ),
-                        Text(
-                          "Rs. ${total.toStringAsFixed(0)}",
-                          style: GoogleFonts.poppins(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            color: Color(0xFF2D63E2), // Blue theme
-                          ),
-                        ),
-                      ],
+                      );
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.deepOrange,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(18),
+                      ),
+                      elevation: 5,
+                      shadowColor: Colors.deepOrange.withOpacity(0.4),
                     ),
-
-                    const SizedBox(height: 16),
-
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF2D63E2),
-                          padding: const EdgeInsets.symmetric(vertical: 15),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(14),
-                          ),
-                        ),
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => CheckoutScreen(
-                                canteenId: canteenId,
-                                items: items,
-                                total: total,
-                              ),
-                            ),
-                          );
-                        },
-                        child: Text(
-                          "Proceed to Checkout",
-                          style: GoogleFonts.poppins(
-                            fontWeight: FontWeight.w600,
-                            color: Colors.white,
-                            fontSize: 16,
-                          ),
-                        ),
+                    child: Text(
+                      "Proceed to Checkout",
+                      style: GoogleFonts.poppins(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
                       ),
                     ),
-                  ],
+                  ),
                 ),
               ),
             ],

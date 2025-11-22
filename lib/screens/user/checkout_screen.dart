@@ -87,7 +87,7 @@ class CheckoutScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFFFF8F0), // Pastel background
+      backgroundColor: Color(0xFFF5F5F5), // Pastel background
 
       appBar: AppBar(
         elevation: 0,
@@ -384,7 +384,6 @@ class PayFastPaymentPage extends StatelessWidget {
   }
 }
 
-// Receipt Screen
 class ReceiptScreen extends StatelessWidget {
   final String canteenId;
   final String orderId;
@@ -407,7 +406,7 @@ class ReceiptScreen extends StatelessWidget {
       backgroundColor: const Color(0xFFFFF8F0),
       body: Stack(
         children: [
-          //  Soft Pastel Red Circle
+          // Decorative Circles
           Positioned(
             top: -60,
             left: -30,
@@ -422,8 +421,6 @@ class ReceiptScreen extends StatelessWidget {
               ),
             ),
           ),
-
-          // Soft Pastel Blue Circle
           Positioned(
             bottom: -80,
             right: -40,
@@ -439,7 +436,6 @@ class ReceiptScreen extends StatelessWidget {
             ),
           ),
 
-          // MAIN CONTENT
           SafeArea(
             child: Padding(
               padding: const EdgeInsets.all(20),
@@ -455,12 +451,12 @@ class ReceiptScreen extends StatelessWidget {
                     order['items'] ?? [],
                   );
                   final total = order['total'] ?? 0;
-
                   final status = order['status'] ?? {};
                   final paymentStatus = status["payment"] ?? "pending";
                   final orderStatus = status["order"] ?? "pending";
 
                   return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
                         "Order Receipt",
@@ -470,25 +466,21 @@ class ReceiptScreen extends StatelessWidget {
                           color: Colors.black87,
                         ),
                       ),
-
-                      const SizedBox(height: 10),
-
+                      const SizedBox(height: 6),
                       Text(
                         "Order #$orderId",
                         style: GoogleFonts.poppins(
-                          color: Colors.black54,
                           fontSize: 15,
+                          color: Colors.black54,
                         ),
                       ),
-
                       const SizedBox(height: 25),
 
-                      // CARD UI
                       Expanded(
                         child: Container(
                           padding: const EdgeInsets.all(20),
                           decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.75),
+                            color: Colors.white.withOpacity(0.85),
                             borderRadius: BorderRadius.circular(22),
                             boxShadow: [
                               BoxShadow(
@@ -501,18 +493,18 @@ class ReceiptScreen extends StatelessWidget {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              // STATUS BADGES
+                              // Animated Status Badges
                               Row(
                                 mainAxisAlignment:
                                     MainAxisAlignment.spaceBetween,
                                 children: [
-                                  _statusBadge(
+                                  _animatedBadge(
                                     "Payment: $paymentStatus",
                                     paymentStatus == "paid"
                                         ? Colors.green
                                         : Colors.orange,
                                   ),
-                                  _statusBadge(
+                                  _animatedBadge(
                                     "Order: $orderStatus",
                                     (orderStatus == "ready" ||
                                             orderStatus == "complete")
@@ -521,25 +513,33 @@ class ReceiptScreen extends StatelessWidget {
                                   ),
                                 ],
                               ),
-
                               const SizedBox(height: 20),
 
-                              Text(
-                                "Items",
-                                style: GoogleFonts.poppins(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.w600,
-                                ),
+                              // Items Section Header
+                              Row(
+                                children: [
+                                  Icon(
+                                    Icons.list_alt,
+                                    color: Colors.deepOrange,
+                                    size: 22,
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    "Items",
+                                    style: GoogleFonts.poppins(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ],
                               ),
-
-                              const SizedBox(height: 10),
+                              const SizedBox(height: 12),
 
                               Expanded(
                                 child: ListView.builder(
                                   itemCount: items.length,
                                   itemBuilder: (context, i) {
                                     final item = items[i];
-
                                     return Container(
                                       margin: const EdgeInsets.only(bottom: 12),
                                       padding: const EdgeInsets.all(12),
@@ -595,6 +595,7 @@ class ReceiptScreen extends StatelessWidget {
 
                               const Divider(height: 30),
 
+                              // Total Section
                               Row(
                                 mainAxisAlignment:
                                     MainAxisAlignment.spaceBetween,
@@ -631,8 +632,9 @@ class ReceiptScreen extends StatelessWidget {
     );
   }
 
-  Widget _statusBadge(String text, Color color) {
-    return Container(
+  Widget _animatedBadge(String text, Color color) {
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 400),
       padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 14),
       decoration: BoxDecoration(
         color: color.withOpacity(0.15),
