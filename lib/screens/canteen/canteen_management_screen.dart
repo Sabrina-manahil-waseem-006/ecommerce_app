@@ -508,9 +508,9 @@ class _CanteenDashboardScreenState extends State<CanteenDashboardScreen> {
     return Scaffold(
       backgroundColor: const Color(0xFFFFF8F0), // Same as login screen
       appBar: AppBar(
-        backgroundColor: const Color.fromARGB(255, 250, 193, 4),
+        // backgroundColor: const Color.fromARGB(255, 250, 193, 4),
         foregroundColor: Colors.black87,
-        elevation: 1,
+        elevation: 0,
         shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(
             bottom: Radius.circular(24), // rounded bottom like modern apps
@@ -981,8 +981,8 @@ class CanteenStatsScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: const Color(0xffFFF8F0),
       appBar: AppBar(
-        backgroundColor: const Color.fromARGB(255, 250, 193, 4),
-        elevation: 1,
+        // backgroundColor: const Color.fromARGB(255, 250, 193, 4),
+        elevation: 0,
         shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(
             bottom: Radius.circular(24), // rounded bottom like modern apps

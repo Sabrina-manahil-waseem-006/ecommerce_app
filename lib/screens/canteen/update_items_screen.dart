@@ -417,7 +417,7 @@ class _UpdateItemsScreenState extends State<UpdateItemsScreen>
     return Scaffold(
       backgroundColor: const Color(0xFFFFF8F0), // Same as login screen
       appBar: AppBar(
-        backgroundColor: const Color.fromARGB(255, 255, 220, 185),
+        //backgroundColor: const Color.fromARGB(255, 255, 254, 253),
         title: Text(
           "Update Items",
           style: GoogleFonts.poppins(
@@ -425,7 +425,7 @@ class _UpdateItemsScreenState extends State<UpdateItemsScreen>
             color: Colors.black87,
           ),
         ),
-        elevation: 1,
+        elevation: 0,
         shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(
             bottom: Radius.circular(0), // rounded bottom like modern apps

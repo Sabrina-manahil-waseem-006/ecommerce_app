@@ -51,8 +51,9 @@ class UserOrdersScreen extends StatelessWidget {
     return snap.data()?['name'] ?? "Canteen";
   }
 
-  String _capitalize(String str) =>
-      str.isNotEmpty ? "${str[0].toUpperCase()}${str.substring(1).toLowerCase()}" : "";
+  String _capitalize(String str) => str.isNotEmpty
+      ? "${str[0].toUpperCase()}${str.substring(1).toLowerCase()}"
+      : "";
 
   @override
   Widget build(BuildContext context) {
@@ -181,7 +182,10 @@ class UserOrdersScreen extends StatelessWidget {
                           // HEADER: Canteen + Icon
                           Row(
                             children: [
-                              const Icon(Icons.restaurant_menu, color: Colors.deepOrange),
+                              const Icon(
+                                Icons.restaurant_menu,
+                                color: Colors.deepOrange,
+                              ),
                               const SizedBox(width: 10),
                               Text(
                                 canteenName,
@@ -229,15 +233,21 @@ class UserOrdersScreen extends StatelessWidget {
                               const SizedBox(),
                               Container(
                                 padding: const EdgeInsets.symmetric(
-                                    vertical: 8, horizontal: 14),
+                                  vertical: 8,
+                                  horizontal: 14,
+                                ),
                                 decoration: BoxDecoration(
                                   gradient: LinearGradient(
-                                    colors: [Colors.deepOrange.shade100, Colors.deepOrange.shade200],
+                                    colors: [
+                                      Colors.deepOrange.shade100,
+                                      Colors.deepOrange.shade200,
+                                    ],
                                   ),
                                   borderRadius: BorderRadius.circular(16),
                                   boxShadow: [
                                     BoxShadow(
-                                      color: Colors.deepOrange.shade100.withOpacity(0.5),
+                                      color: Colors.deepOrange.shade100
+                                          .withOpacity(0.5),
                                       blurRadius: 6,
                                       offset: const Offset(0, 4),
                                     ),

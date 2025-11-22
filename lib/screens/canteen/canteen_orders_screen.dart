@@ -18,73 +18,61 @@ class CanteenOrdersScreen extends StatefulWidget {
 
 class _CanteenOrdersScreenState extends State<CanteenOrdersScreen> {
   String selectedTab = "pending";
+  bool isUpdating = false;
 
   Stream<QuerySnapshot> getOrdersStream(String status) {
+    // Fetch all orders and filter locally for simplicity
     return FirebaseFirestore.instance
         .collection('canteens')
         .doc(widget.canteenId)
         .collection('orders')
-        .where('status.order', isEqualTo: status)
         .orderBy('createdAt', descending: true)
         .snapshots();
   }
 
   Future<void> updateOrderStatus(String orderId, String newStatus) async {
+    setState(() => isUpdating = true);
     try {
-      final orderDoc = await FirebaseFirestore.instance
+      final orderRef = FirebaseFirestore.instance
           .collection('canteens')
           .doc(widget.canteenId)
           .collection('orders')
-          .doc(orderId)
-          .get();
+          .doc(orderId);
 
-      if (!orderDoc.exists) return;
+      await orderRef.update({
+        'status.order': newStatus,
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
 
-      final data = orderDoc.data()!;
-      final userId = data['userId'];
+      final snapshot = await orderRef.get();
+      final userId = snapshot['userId'] as String;
 
-      // update in canteen
-      await FirebaseFirestore.instance
-          .collection('canteens')
-          .doc(widget.canteenId)
-          .collection('orders')
-          .doc(orderId)
-          .update({
-            "status.order": newStatus,
-            "updatedAt": FieldValue.serverTimestamp(),
-          });
-
-      // update in user
-      await FirebaseFirestore.instance
+      final userOrderRef = FirebaseFirestore.instance
           .collection('users')
           .doc(userId)
           .collection('orders')
-          .doc(orderId)
-          .update({
-            "status.order": newStatus,
-            "updatedAt": FieldValue.serverTimestamp(),
-          });
+          .doc(orderId);
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text("Order marked as $newStatus"),
-          backgroundColor: Colors.green,
-        ),
-      );
+      await userOrderRef.update({
+        'status.order': newStatus,
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
+
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Order marked as $newStatus')));
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Failed to update status"),
-          backgroundColor: Colors.red,
-        ),
-      );
+      print('Error updating order: $e');
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Failed to update order')));
+    } finally {
+      setState(() => isUpdating = false);
     }
   }
 
-  // Custom Tab Button
   Widget buildTab(String label, String value) {
     bool active = selectedTab == value;
-
     return Expanded(
       child: GestureDetector(
         onTap: () => setState(() => selectedTab = value),
@@ -92,27 +80,10 @@ class _CanteenOrdersScreenState extends State<CanteenOrdersScreen> {
           duration: const Duration(milliseconds: 280),
           padding: const EdgeInsets.symmetric(vertical: 12),
           decoration: BoxDecoration(
-            color: active ? Colors.deepOrange : Colors.white,
+            color: active ? Colors.blue : Colors.white,
             borderRadius: BorderRadius.circular(18),
-            boxShadow: active
-                ? [
-                    BoxShadow(
-                      color: Colors.deepOrange.withOpacity(0.4),
-                      blurRadius: 12,
-                      offset: const Offset(0, 6),
-                    ),
-                  ]
-                : [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.05),
-                      blurRadius: 6,
-                      offset: const Offset(0, 3),
-                    ),
-                  ],
             border: Border.all(
-              color: active
-                  ? Colors.deepOrange
-                  : Colors.deepOrange.withOpacity(0.3),
+              color: active ? Colors.blue : Colors.blue.withOpacity(0.3),
               width: 1.4,
             ),
           ),
@@ -120,8 +91,7 @@ class _CanteenOrdersScreenState extends State<CanteenOrdersScreen> {
             child: Text(
               label,
               style: GoogleFonts.poppins(
-                fontSize: 15,
-                fontWeight: FontWeight.w700,
+                fontWeight: FontWeight.bold,
                 color: active ? Colors.white : Colors.black87,
               ),
             ),
@@ -131,155 +101,66 @@ class _CanteenOrdersScreenState extends State<CanteenOrdersScreen> {
     );
   }
 
-  // Main Order Card UI (matching Checkout/Receipt look)
   Widget buildOrderCard(DocumentSnapshot doc) {
     final data = doc.data() as Map<String, dynamic>;
+    if (data['status'] == null) return const SizedBox.shrink();
+
+    final orderStatus = (data['status'] as Map)['order'] ?? 'pending';
+    if (orderStatus != selectedTab) return const SizedBox.shrink();
 
     final items = List<Map<String, dynamic>>.from(data['items']);
     final total = data['total'];
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: 20),
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.85),
-        borderRadius: BorderRadius.circular(26),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.08),
-            blurRadius: 14,
-            offset: const Offset(0, 6),
-          ),
-        ],
-        border: Border.all(
-          color: Colors.deepOrange.withOpacity(0.25),
-          width: 1.2,
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Header Row
-          Row(
-            children: [
-              Icon(Icons.receipt_long, color: Colors.deepOrange, size: 24),
-              const SizedBox(width: 10),
-              Text(
-                "Order #${doc.id.substring(0, 6)}",
-                style: GoogleFonts.poppins(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w700,
-                  color: Colors.black87,
-                ),
-              ),
-            ],
-          ),
-
-          const SizedBox(height: 14),
-
-          // Items
-          Text(
-            "Items",
-            style: GoogleFonts.poppins(
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
-              color: Colors.black87,
+    return Card(
+      margin: const EdgeInsets.symmetric(vertical: 10),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              "Order #${doc.id.substring(0, 6)}",
+              style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
             ),
-          ),
-          const SizedBox(height: 8),
-
-          ...items.map((item) {
-            return Container(
-              margin: const EdgeInsets.only(bottom: 10),
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(18),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
-                    blurRadius: 6,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: Row(
+            const SizedBox(height: 10),
+            ...items.map(
+              (item) => Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(
-                    "${item['name']} × ${item['quantity']}",
-                    style: GoogleFonts.poppins(
-                      fontSize: 14.5,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
+                  Text("${item['name']} × ${item['quantity']}"),
                   Text(
                     "Rs ${(item['price'] * item['quantity']).toStringAsFixed(0)}",
-                    style: GoogleFonts.poppins(
-                      fontSize: 14.5,
-                      fontWeight: FontWeight.w700,
-                      color: Colors.deepOrange,
-                    ),
                   ),
                 ],
               ),
-            );
-          }),
-
-          const SizedBox(height: 12),
-          const Divider(),
-          const SizedBox(height: 12),
-
-          // Total Price Row
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                "Total",
-                style: GoogleFonts.poppins(
-                  fontSize: 17,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              Text(
-                "Rs $total",
-                style: GoogleFonts.poppins(
-                  color: Colors.deepOrange,
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ],
-          ),
-
-          const SizedBox(height: 18),
-
-          // Button only in pending tab
-          if (selectedTab == "pending")
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () => updateOrderStatus(doc.id, "completed"),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.green.shade700,
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(18),
-                  ),
-                  elevation: 5,
-                  shadowColor: Colors.green.withOpacity(0.4),
-                ),
-                child: Text(
-                  "Mark as Completed",
-                  style: GoogleFonts.poppins(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w700,
-                    color: Colors.white,
-                  ),
-                ),
-              ),
             ),
-        ],
+            const Divider(),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  "Total",
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+                Text("Rs $total", style: const TextStyle(color: Colors.orange)),
+              ],
+            ),
+            const SizedBox(height: 10),
+            if (selectedTab == "pending")
+              ElevatedButton(
+                onPressed: isUpdating
+                    ? null
+                    : () => updateOrderStatus(doc.id, "completed"),
+                child: isUpdating
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Text("Mark as Completed"),
+              ),
+          ],
+        ),
       ),
     );
   }
@@ -287,107 +168,31 @@ class _CanteenOrdersScreenState extends State<CanteenOrdersScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFFFF8F0),
-
-      // Top Gradient AppBar (matching your style)
-      appBar: AppBar(
-        backgroundColor: Colors.deepOrange,
-        elevation: 4,
-        centerTitle: true,
-        title: Text(
-          "Canteen Orders",
-          style: GoogleFonts.poppins(
-            fontSize: 20,
-            fontWeight: FontWeight.w700,
-            color: Colors.white,
-          ),
-        ),
-        shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(bottom: Radius.circular(26)),
-        ),
-      ),
-
-      body: Stack(
+      appBar: AppBar(title: const Text("Canteen Orders")),
+      body: Column(
         children: [
-          // Top pastel circle
-          Positioned(
-            top: -60,
-            left: -40,
-            child: Container(
-              width: 220,
-              height: 220,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: LinearGradient(
-                  colors: [
-                    Colors.deepOrange.shade100,
-                    Colors.deepOrange.shade300,
-                  ],
-                ),
-              ),
-            ),
+          Row(
+            children: [
+              buildTab("Pending", "pending"),
+              buildTab("Completed", "completed"),
+            ],
           ),
-
-          // Bottom pastel circle
-          Positioned(
-            bottom: -70,
-            right: -50,
-            child: Container(
-              width: 240,
-              height: 240,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: LinearGradient(
-                  colors: [Colors.orange.shade100, Colors.orange.shade300],
-                ),
-              ),
-            ),
-          ),
-
-          // Main content
-          Padding(
-            padding: const EdgeInsets.all(18),
-            child: Column(
-              children: [
-                Row(
-                  children: [
-                    buildTab("Pending", "pending"),
-                    const SizedBox(width: 12),
-                    buildTab("Completed", "completed"),
-                  ],
-                ),
-
-                const SizedBox(height: 20),
-
-                Expanded(
-                  child: StreamBuilder<QuerySnapshot>(
-                    stream: getOrdersStream(selectedTab),
-                    builder: (context, snapshot) {
-                      if (!snapshot.hasData) {
-                        return const Center(child: CircularProgressIndicator());
-                      }
-
-                      if (snapshot.data!.docs.isEmpty) {
-                        return Center(
-                          child: Text(
-                            "No ${selectedTab == 'pending' ? 'pending' : 'completed'} orders",
-                            style: GoogleFonts.poppins(
-                              fontSize: 16,
-                              color: Colors.black54,
-                            ),
-                          ),
-                        );
-                      }
-
-                      return ListView(
-                        children: snapshot.data!.docs
-                            .map((doc) => buildOrderCard(doc))
-                            .toList(),
-                      );
-                    },
-                  ),
-                ),
-              ],
+          Expanded(
+            child: StreamBuilder<QuerySnapshot>(
+              stream: getOrdersStream(selectedTab),
+              builder: (context, snapshot) {
+                if (!snapshot.hasData)
+                  return const Center(child: CircularProgressIndicator());
+                final docs = snapshot.data!.docs;
+                final filtered = docs.where((doc) {
+                  final status = (doc['status'] as Map)['order'] ?? 'pending';
+                  return status == selectedTab;
+                }).toList();
+                if (filtered.isEmpty) return Center(child: Text("No orders"));
+                return ListView(
+                  children: filtered.map((doc) => buildOrderCard(doc)).toList(),
+                );
+              },
             ),
           ),
         ],
