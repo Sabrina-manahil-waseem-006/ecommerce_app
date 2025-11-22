@@ -37,11 +37,10 @@ class _LoginScreenState extends State<LoginScreen>
       duration: const Duration(seconds: 6),
     )..repeat(reverse: true);
 
-    _animation =
-        Tween<double>(begin: -100, end: 100).animate(CurvedAnimation(
-      parent: _controller,
-      curve: Curves.easeInOut,
-    ));
+    _animation = Tween<double>(
+      begin: -100,
+      end: 100,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
   }
 
   @override
@@ -97,13 +96,19 @@ class _LoginScreenState extends State<LoginScreen>
       final role = result['role'];
       if (role == 'admin') {
         Navigator.pushReplacement(
-            context, MaterialPageRoute(builder: (_) => AdminDashboard()));
+          context,
+          MaterialPageRoute(builder: (_) => AdminDashboard()),
+        );
       } else if (role == 'supervisor') {
         Navigator.pushReplacement(
-            context, MaterialPageRoute(builder: (_) => SupervisorDashboard()));
+          context,
+          MaterialPageRoute(builder: (_) => SupervisorDashboard()),
+        );
       } else {
         Navigator.pushReplacement(
-            context, MaterialPageRoute(builder: (_) => UserHome()));
+          context,
+          MaterialPageRoute(builder: (_) => UserHome()),
+        );
       }
     }
   }
@@ -116,7 +121,7 @@ class _LoginScreenState extends State<LoginScreen>
       backgroundColor: const Color(0xFFFFF8F0), // same as splash theme
       body: Stack(
         children: [
-          // 🌈 Floating Pastel Red Circle
+          // Floating Pastel Red Circle
           AnimatedBuilder(
             animation: _animation,
             builder: (context, child) {
@@ -140,7 +145,7 @@ class _LoginScreenState extends State<LoginScreen>
             ),
           ),
 
-          // 🌈 Floating Pastel Blue Circle
+          // Floating Pastel Blue Circle
           AnimatedBuilder(
             animation: _animation,
             builder: (context, child) {
@@ -164,7 +169,7 @@ class _LoginScreenState extends State<LoginScreen>
             ),
           ),
 
-          // 🌟 MAIN CONTENT
+          // MAIN CONTENT
           Center(
             child: SingleChildScrollView(
               padding: EdgeInsets.symmetric(horizontal: size.width * 0.08),
@@ -173,8 +178,11 @@ class _LoginScreenState extends State<LoginScreen>
                   // App Branding
                   Column(
                     children: [
-                      Icon(Icons.fastfood_rounded,
-                          size: 75, color: Colors.black87),
+                      Icon(
+                        Icons.fastfood_rounded,
+                        size: 75,
+                        color: Colors.black87,
+                      ),
                       const SizedBox(height: 10),
 
                       Text(
@@ -219,18 +227,24 @@ class _LoginScreenState extends State<LoginScreen>
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text("Welcome Back!",
-                            style: GoogleFonts.poppins(
-                              fontSize: 22,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.black87,
-                            )),
+                        Text(
+                          "Welcome Back!",
+                          style: GoogleFonts.poppins(
+                            fontSize: 22,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.black87,
+                          ),
+                        ),
 
                         const SizedBox(height: 5),
 
-                        Text("Login to your NEDEats account",
-                            style: GoogleFonts.poppins(
-                                color: Colors.black54, fontSize: 15)),
+                        Text(
+                          "Login to your NEDEats account",
+                          style: GoogleFonts.poppins(
+                            color: Colors.black54,
+                            fontSize: 15,
+                          ),
+                        ),
 
                         const SizedBox(height: 25),
 
@@ -240,8 +254,10 @@ class _LoginScreenState extends State<LoginScreen>
                           keyboardType: TextInputType.emailAddress,
                           decoration: InputDecoration(
                             labelText: "Email Address",
-                            prefixIcon: const Icon(Icons.email_outlined,
-                                color: Colors.black54),
+                            prefixIcon: const Icon(
+                              Icons.email_outlined,
+                              color: Colors.black54,
+                            ),
                             filled: true,
                             fillColor: Colors.white.withOpacity(0.8),
                             border: OutlineInputBorder(
@@ -254,8 +270,10 @@ class _LoginScreenState extends State<LoginScreen>
                             padding: const EdgeInsets.only(top: 5),
                             child: Text(
                               emailError!,
-                              style:
-                                  const TextStyle(color: Colors.red, fontSize: 12),
+                              style: const TextStyle(
+                                color: Colors.red,
+                                fontSize: 12,
+                              ),
                             ),
                           ),
 
@@ -267,8 +285,10 @@ class _LoginScreenState extends State<LoginScreen>
                           obscureText: !isPasswordVisible,
                           decoration: InputDecoration(
                             labelText: "Password",
-                            prefixIcon: const Icon(Icons.lock_outline,
-                                color: Colors.black54),
+                            prefixIcon: const Icon(
+                              Icons.lock_outline,
+                              color: Colors.black54,
+                            ),
                             suffixIcon: IconButton(
                               icon: Icon(
                                 isPasswordVisible
@@ -277,8 +297,9 @@ class _LoginScreenState extends State<LoginScreen>
                                 color: Colors.black54,
                               ),
                               onPressed: () {
-                                setState(() =>
-                                    isPasswordVisible = !isPasswordVisible);
+                                setState(
+                                  () => isPasswordVisible = !isPasswordVisible,
+                                );
                               },
                             ),
                             filled: true,
@@ -292,9 +313,13 @@ class _LoginScreenState extends State<LoginScreen>
                         if (passwordError != null)
                           Padding(
                             padding: const EdgeInsets.only(top: 5),
-                            child: Text(passwordError!,
-                                style: const TextStyle(
-                                    color: Colors.red, fontSize: 12)),
+                            child: Text(
+                              passwordError!,
+                              style: const TextStyle(
+                                color: Colors.red,
+                                fontSize: 12,
+                              ),
+                            ),
                           ),
 
                         const SizedBox(height: 25),
@@ -305,8 +330,7 @@ class _LoginScreenState extends State<LoginScreen>
                           child: ElevatedButton(
                             onPressed: loginUser,
                             style: ElevatedButton.styleFrom(
-                              padding:
-                                  const EdgeInsets.symmetric(vertical: 14),
+                              padding: const EdgeInsets.symmetric(vertical: 14),
                               backgroundColor: Colors.blueAccent,
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(15),
@@ -314,13 +338,16 @@ class _LoginScreenState extends State<LoginScreen>
                             ),
                             child: isLoading
                                 ? const CircularProgressIndicator(
-                                    color: Colors.white, strokeWidth: 2)
+                                    color: Colors.white,
+                                    strokeWidth: 2,
+                                  )
                                 : const Text(
                                     "Login",
                                     style: TextStyle(
-                                        fontSize: 17,
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.white),
+                                      fontSize: 17,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.white,
+                                    ),
                                   ),
                           ),
                         ),
@@ -333,14 +360,16 @@ class _LoginScreenState extends State<LoginScreen>
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                    builder: (_) => const SignupScreen()),
+                                  builder: (_) => const SignupScreen(),
+                                ),
                               );
                             },
                             child: const Text(
                               "Don't have an account? Sign Up",
                               style: TextStyle(
-                                  color: Colors.blueAccent,
-                                  fontWeight: FontWeight.w600),
+                                color: Colors.blueAccent,
+                                fontWeight: FontWeight.w600,
+                              ),
                             ),
                           ),
                         ),
@@ -352,8 +381,10 @@ class _LoginScreenState extends State<LoginScreen>
 
                   Text(
                     "© 2025 NEDEats | Powered by NED University",
-                    style:
-                        GoogleFonts.poppins(fontSize: 13, color: Colors.black54),
+                    style: GoogleFonts.poppins(
+                      fontSize: 13,
+                      color: Colors.black54,
+                    ),
                   ),
                 ],
               ),

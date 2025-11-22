@@ -286,11 +286,7 @@ class _UserHomeState extends State<UserHome> {
   }
 }
 
-// The CanteenItemsScreen and ItemDetailScreen can remain mostly the same,
-// just apply consistent padding, card radius, and shadows similar to above.
-// Remove any redundant profile icons and update typography for professional look.
-
-/// ---------------------- CanteenItemsScreen ----------------------
+/// CanteenItemsScreen
 class CanteenItemsScreen extends StatefulWidget {
   final String canteenId;
   const CanteenItemsScreen({super.key, required this.canteenId});
@@ -639,7 +635,7 @@ class _CanteenItemsScreenState extends State<CanteenItemsScreen> {
   }
 }
 
-/// ---------------------- ItemDetailScreen ----------------------
+///  ItemDetailScreen
 class ItemDetailScreen extends StatefulWidget {
   final String canteenId;
   final String itemId;

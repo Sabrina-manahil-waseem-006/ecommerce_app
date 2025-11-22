@@ -29,7 +29,12 @@ class _AdminDashboardState extends State<AdminDashboard> {
       backgroundColor: const Color(0xFFFEF6F0),
 
       appBar: AppBar(
-        elevation: 0,
+        elevation: 1.5,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(
+            bottom: Radius.circular(24), // rounded bottom like modern apps
+          ),
+        ),
         backgroundColor: const Color(0xFFFEF6F0),
         centerTitle: true,
 
@@ -333,38 +338,25 @@ class _AdminDashboardState extends State<AdminDashboard> {
             final canteenData = canteen.data() as Map<String, dynamic>;
 
             return Card(
-              elevation: 2,
+              elevation: 3,
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(16),
               ),
-              margin: const EdgeInsets.symmetric(vertical: 6),
+              margin: const EdgeInsets.symmetric(vertical: 8),
               child: ExpansionTile(
-                leading: const Icon(Icons.store),
-                title: Text(canteenData['name'] ?? 'Unnamed Canteen'),
-                subtitle: Text(canteenData['location'] ?? ''),
-                children: [
-                  FutureBuilder<QuerySnapshot>(
-                    future: firestore
-                        .collection('canteens')
-                        .doc(canteenId)
-                        .collection('items')
-                        .get(),
-                    builder: (context, itemSnapshot) {
-                      if (!itemSnapshot.hasData) {
-                        return const Padding(
-                          padding: EdgeInsets.all(8.0),
-                          child: CircularProgressIndicator(),
-                        );
-                      }
-
-                      final totalItems = itemSnapshot.data!.docs.length;
-
-                      return Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Text("Total Items: $totalItems"),
-                      );
-                    },
+                leading: const Icon(Icons.store, color: Colors.blue),
+                title: Text(
+                  canteenData['name'] ?? 'Unnamed Canteen',
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 18,
                   ),
+                ),
+                subtitle: Text(
+                  canteenData['location'] ?? '',
+                  style: const TextStyle(color: Colors.black54),
+                ),
+                children: [
                   FutureBuilder<QuerySnapshot>(
                     future: firestore
                         .collection('canteens')
@@ -391,22 +383,63 @@ class _AdminDashboardState extends State<AdminDashboard> {
                                 'pending',
                           )
                           .length;
-                      double totalRevenue = orderSnapshot.data!.docs.fold(
-                        0,
-                        (sum, o) =>
-                            sum +
-                            ((o.data() as Map<String, dynamic>)['total'] ?? 0),
-                      );
+
+                      double totalRevenue = orderSnapshot.data!.docs.fold(0, (
+                        sum,
+                        o,
+                      ) {
+                        final data = o.data() as Map<String, dynamic>;
+                        final total = data['total'];
+                        if (total is int) return sum + total.toDouble();
+                        if (total is double) return sum + total;
+                        if (total is String)
+                          return sum + (double.tryParse(total) ?? 0);
+                        return sum;
+                      });
+
+                      // Supervisor fee example (10%)
+                      double supervisorFee = totalRevenue * 0.10;
+                      double netRevenue = totalRevenue - supervisorFee;
 
                       return Padding(
-                        padding: const EdgeInsets.all(8.0),
+                        padding: const EdgeInsets.all(12.0),
                         child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text("Total Orders: $totalOrders"),
-                            Text("Pending Orders: $pendingOrders"),
-                            Text(
-                              "Total Revenue: ₨${totalRevenue.toStringAsFixed(0)}",
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceAround,
+                              children: [
+                                _infoTile(
+                                  Icons.receipt_long,
+                                  "Total Orders",
+                                  "$totalOrders",
+                                ),
+                                _infoTile(
+                                  Icons.pending,
+                                  "Pending Orders",
+                                  "$pendingOrders",
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 12),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceAround,
+                              children: [
+                                _infoTile(
+                                  Icons.monetization_on,
+                                  "Revenue",
+                                  "₨${totalRevenue.toStringAsFixed(0)}",
+                                ),
+                                _infoTile(
+                                  Icons.person,
+                                  "Supervisor Fee",
+                                  "₨${supervisorFee.toStringAsFixed(0)}",
+                                ),
+                                _infoTile(
+                                  Icons.account_balance_wallet,
+                                  "Net Revenue",
+                                  "₨${netRevenue.toStringAsFixed(0)}",
+                                ),
+                              ],
                             ),
                           ],
                         ),
@@ -419,6 +452,34 @@ class _AdminDashboardState extends State<AdminDashboard> {
           },
         );
       },
+    );
+  }
+
+  // Helper widget for nice info tiles
+  Widget _infoTile(IconData icon, String label, String value) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: const [
+          BoxShadow(color: Colors.black12, blurRadius: 6, offset: Offset(0, 3)),
+        ],
+      ),
+      child: Column(
+        children: [
+          Icon(icon, color: Colors.blue, size: 28),
+          const SizedBox(height: 6),
+          Text(
+            value,
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+          ),
+          Text(
+            label,
+            style: const TextStyle(color: Colors.black54, fontSize: 12),
+          ),
+        ],
+      ),
     );
   }
 

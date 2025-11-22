@@ -14,7 +14,7 @@ class UpdateItemsScreen extends StatefulWidget {
   State<UpdateItemsScreen> createState() => _UpdateItemsScreenState();
 }
 
-class _UpdateItemsScreenState extends State<UpdateItemsScreen> 
+class _UpdateItemsScreenState extends State<UpdateItemsScreen>
     with SingleTickerProviderStateMixin {
   bool isLoading = false;
   List<String> availableCategories = [];
@@ -32,11 +32,10 @@ class _UpdateItemsScreenState extends State<UpdateItemsScreen>
       duration: const Duration(seconds: 6),
     )..repeat(reverse: true);
 
-    _animation =
-        Tween<double>(begin: -100, end: 100).animate(CurvedAnimation(
-      parent: _controller,
-      curve: Curves.easeInOut,
-    ));
+    _animation = Tween<double>(
+      begin: -100,
+      end: 100,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
 
     loadCategories();
   }
@@ -418,6 +417,7 @@ class _UpdateItemsScreenState extends State<UpdateItemsScreen>
     return Scaffold(
       backgroundColor: const Color(0xFFFFF8F0), // Same as login screen
       appBar: AppBar(
+        backgroundColor: const Color.fromARGB(255, 255, 220, 185),
         title: Text(
           "Update Items",
           style: GoogleFonts.poppins(
@@ -425,14 +425,19 @@ class _UpdateItemsScreenState extends State<UpdateItemsScreen>
             color: Colors.black87,
           ),
         ),
-        backgroundColor: Colors.white,
+        elevation: 1,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(
+            bottom: Radius.circular(0), // rounded bottom like modern apps
+          ),
+        ),
         foregroundColor: Colors.black87,
-        elevation: 0,
+
         iconTheme: const IconThemeData(color: Colors.black87),
       ),
       body: Stack(
         children: [
-          // 🌈 Floating Pastel Red Circle
+          //Floating Pastel Red Circle
           AnimatedBuilder(
             animation: _animation,
             builder: (context, child) {
@@ -456,7 +461,7 @@ class _UpdateItemsScreenState extends State<UpdateItemsScreen>
             ),
           ),
 
-          // 🌈 Floating Pastel Blue Circle
+          // Floating Pastel Blue Circle
           AnimatedBuilder(
             animation: _animation,
             builder: (context, child) {
@@ -480,7 +485,7 @@ class _UpdateItemsScreenState extends State<UpdateItemsScreen>
             ),
           ),
 
-          // 🌟 MAIN CONTENT
+          // MAIN CONTENT
           Padding(
             padding: const EdgeInsets.all(16),
             child: Column(
@@ -515,7 +520,7 @@ class _UpdateItemsScreenState extends State<UpdateItemsScreen>
                           ),
                         );
                       }
-                      
+
                       if (!snapshot.hasData || snapshot.data!.isEmpty) {
                         return Center(
                           child: Text(
@@ -527,15 +532,16 @@ class _UpdateItemsScreenState extends State<UpdateItemsScreen>
                           ),
                         );
                       }
-                      
+
                       final displayItems = snapshot.data!;
-                      
+
                       return ListView.builder(
                         itemCount: displayItems.length,
                         itemBuilder: (context, i) {
                           final item = displayItems[i];
                           final data = item['data'] as Map<String, dynamic>;
-                          final parentCategory = item['parentCategory'] as String?;
+                          final parentCategory =
+                              item['parentCategory'] as String?;
                           final price = (data['price'] is num)
                               ? (data['price'] as num).toDouble()
                               : 0.0;
@@ -564,8 +570,11 @@ class _UpdateItemsScreenState extends State<UpdateItemsScreen>
                                   width: 60,
                                   height: 60,
                                   color: Colors.grey.shade100,
-                                  child: (data['imageUrl'] != null &&
-                                      data['imageUrl'].toString().isNotEmpty)
+                                  child:
+                                      (data['imageUrl'] != null &&
+                                          data['imageUrl']
+                                              .toString()
+                                              .isNotEmpty)
                                       ? Image.network(
                                           data['imageUrl'],
                                           width: 60,

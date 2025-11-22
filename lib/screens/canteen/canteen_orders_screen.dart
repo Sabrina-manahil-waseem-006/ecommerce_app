@@ -226,13 +226,14 @@ class _CanteenOrdersScreenState extends State<CanteenOrdersScreen> {
       backgroundColor: const Color(0xFFFFF8F0), // Same pastel as user dashboard
 
       appBar: AppBar(
+        backgroundColor: const Color.fromARGB(255, 255, 220, 185),
         elevation: 1,
         shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(
             bottom: Radius.circular(24), // rounded bottom like modern apps
           ),
         ),
-        backgroundColor: Colors.transparent,
+        foregroundColor: Colors.transparent,
         centerTitle: true,
         title: Text(
           "Canteen Orders",

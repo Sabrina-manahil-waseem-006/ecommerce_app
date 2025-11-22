@@ -70,7 +70,7 @@ class _CanteenDashboardScreenState extends State<CanteenDashboardScreen> {
     }
   }
 
-  // ---------------------- LOGOUT FUNCTION ------------------------
+  //  LOGOUT FUNCTION
   Future<void> _logout() async {
     try {
       await FirebaseAuth.instance.signOut();
@@ -508,9 +508,14 @@ class _CanteenDashboardScreenState extends State<CanteenDashboardScreen> {
     return Scaffold(
       backgroundColor: const Color(0xFFFFF8F0), // Same as login screen
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: const Color.fromARGB(255, 250, 193, 4),
         foregroundColor: Colors.black87,
-        elevation: 0,
+        elevation: 1,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(
+            bottom: Radius.circular(24), // rounded bottom like modern apps
+          ),
+        ),
         title: Text(
           name,
           style: GoogleFonts.poppins(
@@ -721,7 +726,7 @@ class _CanteenDashboardScreenState extends State<CanteenDashboardScreen> {
             ),
             const SizedBox(height: 10),
 
-            // ---- Display categorized items ----
+            //  Display categorized items
             if (allItems.isEmpty)
               Padding(
                 padding: const EdgeInsets.all(40),
@@ -976,8 +981,13 @@ class CanteenStatsScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: const Color(0xffFFF8F0),
       appBar: AppBar(
-        backgroundColor: const Color(0xffFFF8F0),
-        elevation: 0,
+        backgroundColor: const Color.fromARGB(255, 250, 193, 4),
+        elevation: 1,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(
+            bottom: Radius.circular(24), // rounded bottom like modern apps
+          ),
+        ),
         iconTheme: const IconThemeData(color: Colors.black87),
         title: Text(
           "Statistics",
