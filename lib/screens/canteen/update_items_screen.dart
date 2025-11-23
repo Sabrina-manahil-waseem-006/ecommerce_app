@@ -6,6 +6,9 @@ import 'package:file_picker/file_picker.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
 
+const Color _bgColor = Color(0xFFF5F5F5);
+const double _cardRadius = 20;
+
 class UpdateItemsScreen extends StatefulWidget {
   final String canteenId;
   const UpdateItemsScreen({super.key, required this.canteenId});
@@ -26,7 +29,6 @@ class _UpdateItemsScreenState extends State<UpdateItemsScreen>
   void initState() {
     super.initState();
 
-    // Animation for floating pastel circles
     _controller = AnimationController(
       vsync: this,
       duration: const Duration(seconds: 6),
@@ -48,15 +50,15 @@ class _UpdateItemsScreenState extends State<UpdateItemsScreen>
 
   Future<void> loadCategories() async {
     try {
-      final itemsRef = FirebaseFirestore.instance
+      final snapshot = await FirebaseFirestore.instance
           .collection('canteens')
           .doc(widget.canteenId)
-          .collection('items');
-      final snapshot = await itemsRef
+          .collection('items')
           .where('type', isEqualTo: 'category')
           .get();
-      final cats = snapshot.docs.map((doc) => doc.id).toList();
-      setState(() => availableCategories = cats);
+      setState(() {
+        availableCategories = snapshot.docs.map((doc) => doc.id).toList();
+      });
     } catch (e) {
       debugPrint("Error loading categories: $e");
     }
@@ -125,6 +127,7 @@ class _UpdateItemsScreenState extends State<UpdateItemsScreen>
           .collection('canteens')
           .doc(widget.canteenId)
           .collection('items');
+
       if (parentCategory != null) {
         await itemsRef
             .doc(parentCategory)
@@ -134,6 +137,7 @@ class _UpdateItemsScreenState extends State<UpdateItemsScreen>
       } else {
         await itemsRef.doc(itemId).delete();
       }
+
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text("Item deleted successfully"),
@@ -161,7 +165,6 @@ class _UpdateItemsScreenState extends State<UpdateItemsScreen>
     );
     bool isAvailable = itemData['isAvailable'] ?? true;
     Uint8List? pickedImage;
-
     String? selectedCategory = parentCategory;
     final newCategoryController = TextEditingController();
 
@@ -197,12 +200,10 @@ class _UpdateItemsScreenState extends State<UpdateItemsScreen>
                       (cat) => DropdownMenuItem(value: cat, child: Text(cat)),
                     ),
                   ],
-                  onChanged: (val) {
-                    setDialogState(() {
-                      selectedCategory = val;
-                      newCategoryController.text = '';
-                    });
-                  },
+                  onChanged: (val) => setDialogState(() {
+                    selectedCategory = val;
+                    newCategoryController.text = '';
+                  }),
                 ),
                 const SizedBox(height: 8),
                 TextField(
@@ -210,9 +211,8 @@ class _UpdateItemsScreenState extends State<UpdateItemsScreen>
                   decoration: const InputDecoration(
                     labelText: "Or type new category",
                   ),
-                  onChanged: (val) {
-                    setDialogState(() => selectedCategory = null);
-                  },
+                  onChanged: (val) =>
+                      setDialogState(() => selectedCategory = null),
                 ),
                 const SizedBox(height: 12),
                 GestureDetector(
@@ -231,7 +231,7 @@ class _UpdateItemsScreenState extends State<UpdateItemsScreen>
                     width: double.infinity,
                     decoration: BoxDecoration(
                       color: Colors.grey[200],
-                      borderRadius: BorderRadius.circular(10),
+                      borderRadius: BorderRadius.circular(12),
                       border: Border.all(color: Colors.grey.shade400),
                     ),
                     child: pickedImage != null
@@ -286,9 +286,9 @@ class _UpdateItemsScreenState extends State<UpdateItemsScreen>
                       uploadedUrl;
 
                 String? finalCategory;
-                if (selectedCategory != null && selectedCategory!.isNotEmpty)
+                if ((selectedCategory ?? '').isNotEmpty) {
                   finalCategory = selectedCategory;
-                else if (newCategoryController.text.trim().isNotEmpty)
+                } else if (newCategoryController.text.trim().isNotEmpty)
                   finalCategory = newCategoryController.text.trim();
 
                 final itemsRef = FirebaseFirestore.instance
@@ -296,21 +296,15 @@ class _UpdateItemsScreenState extends State<UpdateItemsScreen>
                     .doc(widget.canteenId)
                     .collection('items');
 
-                // If category changed, move the document
+                // Update or move item
                 if (parentCategory != finalCategory) {
-                  // Delete old item
-                  if (parentCategory != null) {
+                  if (parentCategory != null)
                     await itemsRef
                         .doc(parentCategory)
                         .collection('items')
                         .doc(itemId)
                         .delete();
-                  } else {
-                    await itemsRef.doc(itemId).delete();
-                  }
-
                   if (finalCategory == null) {
-                    // Save at root
                     await itemsRef.doc(itemId).set({
                       'name': nameController.text.trim(),
                       'price':
@@ -321,18 +315,15 @@ class _UpdateItemsScreenState extends State<UpdateItemsScreen>
                       'createdAt': FieldValue.serverTimestamp(),
                     });
                   } else {
-                    // Ensure category exists
-                    final categoryDoc = itemsRef.doc(finalCategory);
-                    final catSnap = await categoryDoc.get();
-                    if (!catSnap.exists) {
-                      await categoryDoc.set({
+                    final catDoc = itemsRef.doc(finalCategory);
+                    final catSnap = await catDoc.get();
+                    if (!catSnap.exists)
+                      await catDoc.set({
                         'name': finalCategory,
                         'type': 'category',
                         'createdAt': FieldValue.serverTimestamp(),
                       });
-                    }
-                    // Save inside new category
-                    await categoryDoc.collection('items').doc(itemId).set({
+                    await catDoc.collection('items').doc(itemId).set({
                       'name': nameController.text.trim(),
                       'price':
                           double.tryParse(priceController.text.trim()) ?? 0,
@@ -343,7 +334,6 @@ class _UpdateItemsScreenState extends State<UpdateItemsScreen>
                     });
                   }
                 } else {
-                  // Update in same location
                   if (parentCategory != null) {
                     await itemsRef
                         .doc(parentCategory)
@@ -391,21 +381,20 @@ class _UpdateItemsScreenState extends State<UpdateItemsScreen>
       List<Map<String, dynamic>> displayItems = [];
       for (var doc in snapshot.docs) {
         final data = doc.data() as Map<String, dynamic>;
-        if (data['type'] == 'item') {
+        if (data['type'] == 'item')
           displayItems.add({
             'data': data,
             'id': doc.id,
             'parentCategory': null,
           });
-        } else if (data['type'] == 'category') {
-          final categoryItems = await doc.reference.collection('items').get();
-          for (var cdoc in categoryItems.docs) {
+        if (data['type'] == 'category') {
+          final catItems = await doc.reference.collection('items').get();
+          for (var cdoc in catItems.docs)
             displayItems.add({
               'data': cdoc.data(),
               'id': cdoc.id,
               'parentCategory': doc.id,
             });
-          }
         }
       }
       yield displayItems;
@@ -415,9 +404,10 @@ class _UpdateItemsScreenState extends State<UpdateItemsScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFFFF8F0), // Same as login screen
+      backgroundColor: _bgColor,
       appBar: AppBar(
-        //backgroundColor: const Color.fromARGB(255, 255, 254, 253),
+        backgroundColor: _bgColor,
+        elevation: 0,
         title: Text(
           "Update Items",
           style: GoogleFonts.poppins(
@@ -425,67 +415,10 @@ class _UpdateItemsScreenState extends State<UpdateItemsScreen>
             color: Colors.black87,
           ),
         ),
-        elevation: 0,
-        shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(
-            bottom: Radius.circular(0), // rounded bottom like modern apps
-          ),
-        ),
-        foregroundColor: Colors.black87,
-
         iconTheme: const IconThemeData(color: Colors.black87),
       ),
       body: Stack(
         children: [
-          //Floating Pastel Red Circle
-          AnimatedBuilder(
-            animation: _animation,
-            builder: (context, child) {
-              return Positioned(
-                top: _animation.value - 80,
-                left: -40,
-                child: child!,
-              );
-            },
-            child: Container(
-              width: 230,
-              height: 230,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: LinearGradient(
-                  colors: [Colors.red.shade100, Colors.red.shade300],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-              ),
-            ),
-          ),
-
-          // Floating Pastel Blue Circle
-          AnimatedBuilder(
-            animation: _animation,
-            builder: (context, child) {
-              return Positioned(
-                bottom: _animation.value - 60,
-                right: -55,
-                child: child!,
-              );
-            },
-            child: Container(
-              width: 260,
-              height: 260,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: LinearGradient(
-                  colors: [Colors.blue.shade100, Colors.blue.shade300],
-                  begin: Alignment.topRight,
-                  end: Alignment.bottomLeft,
-                ),
-              ),
-            ),
-          ),
-
-          // MAIN CONTENT
           Padding(
             padding: const EdgeInsets.all(16),
             child: Column(
@@ -499,7 +432,7 @@ class _UpdateItemsScreenState extends State<UpdateItemsScreen>
                     color: Colors.black87,
                   ),
                 ),
-                const SizedBox(height: 5),
+                const SizedBox(height: 6),
                 Text(
                   "Edit or delete your menu items",
                   style: GoogleFonts.poppins(
@@ -512,16 +445,10 @@ class _UpdateItemsScreenState extends State<UpdateItemsScreen>
                   child: StreamBuilder<List<Map<String, dynamic>>>(
                     stream: fetchAllItems(),
                     builder: (context, snapshot) {
-                      if (snapshot.connectionState == ConnectionState.waiting) {
-                        return Center(
-                          child: CircularProgressIndicator(
-                            color: Colors.blueAccent,
-                            strokeWidth: 2,
-                          ),
-                        );
-                      }
+                      if (snapshot.connectionState == ConnectionState.waiting)
+                        return const Center(child: CircularProgressIndicator());
 
-                      if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                      if (!snapshot.hasData || snapshot.data!.isEmpty)
                         return Center(
                           child: Text(
                             "No items added yet",
@@ -531,10 +458,8 @@ class _UpdateItemsScreenState extends State<UpdateItemsScreen>
                             ),
                           ),
                         );
-                      }
 
                       final displayItems = snapshot.data!;
-
                       return ListView.builder(
                         itemCount: displayItems.length,
                         itemBuilder: (context, i) {
@@ -547,25 +472,25 @@ class _UpdateItemsScreenState extends State<UpdateItemsScreen>
                               : 0.0;
 
                           return Container(
-                            margin: const EdgeInsets.symmetric(vertical: 6),
+                            margin: const EdgeInsets.symmetric(vertical: 8),
                             decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.65),
-                              borderRadius: BorderRadius.circular(15),
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(_cardRadius),
                               boxShadow: [
                                 BoxShadow(
-                                  color: Colors.black.withOpacity(0.08),
-                                  blurRadius: 8,
-                                  offset: const Offset(0, 3),
+                                  color: Colors.black12,
+                                  blurRadius: 12,
+                                  offset: const Offset(0, 6),
                                 ),
                               ],
                             ),
                             child: ListTile(
                               contentPadding: const EdgeInsets.symmetric(
                                 horizontal: 16,
-                                vertical: 8,
+                                vertical: 10,
                               ),
                               leading: ClipRRect(
-                                borderRadius: BorderRadius.circular(10),
+                                borderRadius: BorderRadius.circular(12),
                                 child: Container(
                                   width: 60,
                                   height: 60,
@@ -601,8 +526,8 @@ class _UpdateItemsScreenState extends State<UpdateItemsScreen>
                                   Text(
                                     "Rs. $price",
                                     style: GoogleFonts.poppins(
-                                      color: Colors.black87,
                                       fontWeight: FontWeight.w500,
+                                      color: Colors.black87,
                                     ),
                                   ),
                                   const SizedBox(height: 2),
@@ -614,15 +539,15 @@ class _UpdateItemsScreenState extends State<UpdateItemsScreen>
                                       color: data['isAvailable'] == true
                                           ? Colors.green
                                           : Colors.red,
-                                      fontWeight: FontWeight.w500,
                                       fontSize: 12,
+                                      fontWeight: FontWeight.w500,
                                     ),
                                   ),
                                   if (parentCategory != null)
                                     Text(
                                       "Category: $parentCategory",
                                       style: TextStyle(
-                                        fontSize: 11,
+                                        fontSize: 12,
                                         color: Colors.black54,
                                       ),
                                     ),
@@ -632,7 +557,7 @@ class _UpdateItemsScreenState extends State<UpdateItemsScreen>
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
                                   IconButton(
-                                    icon: Icon(
+                                    icon: const Icon(
                                       Icons.edit,
                                       color: Colors.blueAccent,
                                     ),
@@ -667,12 +592,7 @@ class _UpdateItemsScreenState extends State<UpdateItemsScreen>
           if (isLoading)
             Container(
               color: Colors.black.withOpacity(0.3),
-              child: Center(
-                child: CircularProgressIndicator(
-                  color: Colors.blueAccent,
-                  strokeWidth: 2,
-                ),
-              ),
+              child: const Center(child: CircularProgressIndicator()),
             ),
         ],
       ),

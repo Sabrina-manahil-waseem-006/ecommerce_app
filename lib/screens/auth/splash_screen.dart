@@ -69,8 +69,8 @@ class _SplashSliderScreenState extends State<SplashSliderScreen> {
             flex: 5,
             child: ClipRRect(
               borderRadius: const BorderRadius.only(
-                bottomLeft: Radius.circular(40),
-                bottomRight: Radius.circular(40),
+                bottomLeft: Radius.circular(60),
+                bottomRight: Radius.circular(60),
               ),
               child: AnimatedSwitcher(
                 duration: const Duration(milliseconds: 800),

@@ -295,7 +295,7 @@ class _UserHomeState extends State<UserHome> {
         final imageUrl = (c['imageUrl'] ?? '').toString();
         final isPopular = (c['isPopular'] ?? false) as bool;
         final deliveryTime = (c['deliveryTime'] ?? '20-30 min').toString();
-        final priceRange = (c['priceRange'] ?? '\$\$').toString();
+        final priceRange = (c['priceRange'] ?? "").toString();
         final isVeg = (c['isVeg'] ?? true) as bool;
 
         return InkWell(
