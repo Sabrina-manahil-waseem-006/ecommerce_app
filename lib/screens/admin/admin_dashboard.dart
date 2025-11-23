@@ -483,7 +483,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
     );
   }
 
-  // ---------------- RECENT ACTIVITY ----------------
+  //  RECENT ACTIVITY 
   Widget _recentActivityCard(String message) {
     return Card(
       shape: RoundedRectangleBorder(
