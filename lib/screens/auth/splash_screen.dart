@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'login_screen.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'login_screen.dart';
 
 class SplashSliderScreen extends StatefulWidget {
   const SplashSliderScreen({super.key});
@@ -10,11 +10,12 @@ class SplashSliderScreen extends StatefulWidget {
   State<SplashSliderScreen> createState() => _SplashSliderScreenState();
 }
 
-class _SplashSliderScreenState extends State<SplashSliderScreen>
-    with SingleTickerProviderStateMixin {
+class _SplashSliderScreenState extends State<SplashSliderScreen> {
   int currentIndex = 0;
-  late AnimationController _controller;
-  late Animation<double> _animation;
+  late final Timer _timer;
+
+  final int totalImages =
+      5; // Number of sequential images (food1.jpg → food5.jpg)
 
   final List<String> sliderTexts = [
     "Welcome to NEDEats",
@@ -26,258 +27,115 @@ class _SplashSliderScreenState extends State<SplashSliderScreen>
   void initState() {
     super.initState();
 
-    Timer.periodic(const Duration(seconds: 2), (timer) {
-      setState(() => currentIndex = (currentIndex + 1) % sliderTexts.length);
+    // Timer to change image and text every 3 seconds
+    _timer = Timer.periodic(const Duration(seconds: 3), (_) {
+      if (!mounted) return;
+      setState(() {
+        currentIndex = (currentIndex + 1) % totalImages;
+      });
     });
 
-    Timer(const Duration(seconds: 8), () {
+    // Navigate to login after 10 seconds
+    Future.delayed(const Duration(seconds: 10), () {
+      if (!mounted) return;
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (_) => const LoginScreen()),
+        PageRouteBuilder(
+          transitionDuration: const Duration(milliseconds: 800),
+          pageBuilder: (_, __, ___) => const LoginScreen(),
+          transitionsBuilder: (_, animation, __, child) =>
+              FadeTransition(opacity: animation, child: child),
+        ),
       );
     });
-
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(seconds: 10), // ← slower
-    )..repeat(reverse: true);
-
-    _animation = Tween<double>(begin: -200, end: 200).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
-    );
   }
 
   @override
   void dispose() {
-    _controller.dispose();
+    _timer.cancel();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    final size = MediaQuery.of(context).size;
+
     return Scaffold(
       backgroundColor: const Color(0xFFFFF8F0),
-      body: Stack(
+      body: Column(
         children: [
-
-          // 🍔 LEFT SIDE EMOJIS (ADDED)
-          AnimatedBuilder(
-            animation: _animation,
-            builder: (context, child) {
-              return Positioned(
-                left: 8,
-                top: -150 + _animation.value,
-                child: Column(
-                  children: const [
-                    Text("🍔", style: TextStyle(fontSize: 32)),
-                    SizedBox(height: 14),
-                    Text("🍕", style: TextStyle(fontSize: 32)),
-                    SizedBox(height: 14),
-                    Text("🍟", style: TextStyle(fontSize: 32)),
-                    SizedBox(height: 14),
-                    Text("🌭", style: TextStyle(fontSize: 32)),
-                    SizedBox(height: 14),
-                    Text("🍗", style: TextStyle(fontSize: 32)),
-                    SizedBox(height: 14),
-                    Text("🥪", style: TextStyle(fontSize: 32)),
-                    SizedBox(height: 14),
-                    Text("🍜", style: TextStyle(fontSize: 32)),
-                    SizedBox(height: 14),
-                    Text("🍱", style: TextStyle(fontSize: 32)),
-                    SizedBox(height: 14),
-                    Text("🍝", style: TextStyle(fontSize: 32)),
-                    SizedBox(height: 14),
-                    Text("🍛", style: TextStyle(fontSize: 32)),
-                  ],
-                ),
-              );
-            },
-          ),
-
-          // 🍩 RIGHT SIDE EMOJIS (ADDED)
-          AnimatedBuilder(
-            animation: _animation,
-            builder: (context, child) {
-              return Positioned(
-                right: 8,
-                bottom: -150 + _animation.value,
-                child: Column(
-                  children: const [
-                    Text("🍩", style: TextStyle(fontSize: 32)),
-                    SizedBox(height: 14),
-                    Text("🧁", style: TextStyle(fontSize: 32)),
-                    SizedBox(height: 14),
-                    Text("🍰", style: TextStyle(fontSize: 32)),
-                    SizedBox(height: 14),
-                    Text("🍦", style: TextStyle(fontSize: 32)),
-                    SizedBox(height: 14),
-                    Text("🍨", style: TextStyle(fontSize: 32)),
-                    SizedBox(height: 14),
-                    Text("🧋", style: TextStyle(fontSize: 32)),
-                    SizedBox(height: 14),
-                    Text("🥤", style: TextStyle(fontSize: 32)),
-                    SizedBox(height: 14),
-                    Text("🍹", style: TextStyle(fontSize: 32)),
-                    SizedBox(height: 14),
-                    Text("🍿", style: TextStyle(fontSize: 32)),
-                    SizedBox(height: 14),
-                    Text("🥞", style: TextStyle(fontSize: 32)),
-                  ],
-                ),
-              );
-            },
-          ),
-
-          // 🌈 Pastel Red Circle
-          AnimatedBuilder(
-            animation: _animation,
-            builder: (context, child) {
-              return Positioned(
-                top: _animation.value,
-                left: -40,
-                child: child!,
-              );
-            },
-            child: Container(
-              width: 220,
-              height: 220,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: LinearGradient(
-                  colors: [Colors.red.shade100, Colors.red.shade300],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
+          // Top Image - half screen, bottom rounded corners
+          Expanded(
+            flex: 5,
+            child: ClipRRect(
+              borderRadius: const BorderRadius.only(
+                bottomLeft: Radius.circular(40),
+                bottomRight: Radius.circular(40),
+              ),
+              child: AnimatedSwitcher(
+                duration: const Duration(milliseconds: 800),
+                child: Image.asset(
+                  'assets/food${currentIndex + 1}.jpg', // dynamically use sequential images
+                  key: ValueKey(currentIndex),
+                  width: double.infinity,
+                  height: double.infinity,
+                  fit: BoxFit.cover,
                 ),
               ),
             ),
           ),
 
-          // 🌈 Pastel Blue Circle
-          AnimatedBuilder(
-            animation: _animation,
-            builder: (context, child) {
-              return Positioned(
-                bottom: _animation.value,
-                right: -50,
-                child: child!,
-              );
-            },
-            child: Container(
-              width: 260,
-              height: 260,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: LinearGradient(
-                  colors: [Colors.blue.shade100, Colors.blue.shade300],
-                  begin: Alignment.topRight,
-                  end: Alignment.bottomLeft,
-                ),
-              ),
-            ),
-          ),
+          const SizedBox(height: 30),
 
-          // 🔹 HEADER LINE 1
-          AnimatedBuilder(
-            animation: _animation,
-            builder: (context, child) {
-              return Positioned(
-                top: 40,
-                left: 50 + _animation.value,
-                child: Container(
-                  width: 300,
-                  height: 4,
-                  color: Colors.grey.shade700,
-                ),
-              );
-            },
-          ),
-
-          // 🔹 HEADER LINE 2
-          AnimatedBuilder(
-            animation: _animation,
-            builder: (context, child) {
-              return Positioned(
-                top: 60,
-                right: 50 + _animation.value,
-                child: Container(
-                  width: 300,
-                  height: 4,
-                  color: Colors.grey.shade500,
-                ),
-              );
-            },
-          ),
-
-          // 🔹 FOOTER LINE 1
-          AnimatedBuilder(
-            animation: _animation,
-            builder: (context, child) {
-              return Positioned(
-                bottom: 60,
-                left: 50 + _animation.value,
-                child: Container(
-                  width: 300,
-                  height: 4,
-                  color: Colors.grey.shade700,
-                ),
-              );
-            },
-          ),
-
-          // 🔹 FOOTER LINE 2
-          AnimatedBuilder(
-            animation: _animation,
-            builder: (context, child) {
-              return Positioned(
-                bottom: 40,
-                right: 50 + _animation.value,
-                child: Container(
-                  width: 300,
-                  height: 4,
-                  color: Colors.grey.shade500,
-                ),
-              );
-            },
-          ),
-
-          // ⭐ MAIN CONTENT
-          Center(
+          // Text below the image
+          Expanded(
+            flex: 2,
             child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.start,
               children: [
-                Icon(Icons.fastfood_rounded, size: 85, color: Colors.black87),
-                const SizedBox(height: 20),
-
-                AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 400),
-                  transitionBuilder: (child, animation) =>
-                      FadeTransition(opacity: animation, child: child),
+                // Gradient + shadow text
+                ShaderMask(
+                  shaderCallback: (bounds) =>
+                      const LinearGradient(
+                        colors: [Colors.deepOrange, Colors.orangeAccent],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ).createShader(
+                        Rect.fromLTWH(0, 0, bounds.width, bounds.height),
+                      ),
                   child: Text(
-                    sliderTexts[currentIndex],
-                    key: ValueKey(currentIndex),
+                    sliderTexts[currentIndex % sliderTexts.length],
                     textAlign: TextAlign.center,
                     style: GoogleFonts.poppins(
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black87,
+                      fontSize: 28,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.white, // will be replaced by gradient
+                      shadows: [
+                        Shadow(
+                          color: Colors.black.withOpacity(0.3),
+                          offset: const Offset(2, 2),
+                          blurRadius: 4,
+                        ),
+                      ],
                     ),
                   ),
                 ),
 
                 const SizedBox(height: 20),
 
+                // Dots indicator
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: List.generate(
-                    sliderTexts.length,
+                    totalImages,
                     (index) => AnimatedContainer(
                       duration: const Duration(milliseconds: 300),
                       margin: const EdgeInsets.symmetric(horizontal: 5),
-                      width: currentIndex == index ? 18 : 8,
-                      height: 8,
+                      width: currentIndex == index ? 20 : 10,
+                      height: 10,
                       decoration: BoxDecoration(
                         color: currentIndex == index
-                            ? Colors.blueAccent
+                            ? Colors.deepOrange
                             : Colors.grey.shade400,
                         borderRadius: BorderRadius.circular(10),
                       ),

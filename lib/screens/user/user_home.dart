@@ -809,7 +809,7 @@ class _CanteenItemsScreenState extends State<CanteenItemsScreen> {
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Text(
-                      isVeg ? "Veg" : "Non-Veg",
+                      isVeg ? "" : "",
                       style: GoogleFonts.poppins(
                         color: isVeg ? Colors.green[800] : Colors.red[800],
                         fontSize: 12,
