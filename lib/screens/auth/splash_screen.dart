@@ -97,7 +97,7 @@ class _SplashSliderScreenState extends State<SplashSliderScreen> {
                 ShaderMask(
                   shaderCallback: (bounds) =>
                       const LinearGradient(
-                        colors: [Colors.deepOrange, Colors.orangeAccent],
+                        colors: [Color.fromARGB(171, 26, 10, 100), Color.fromARGB(195, 17, 48, 150)],
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
                       ).createShader(
@@ -135,7 +135,7 @@ class _SplashSliderScreenState extends State<SplashSliderScreen> {
                       height: 10,
                       decoration: BoxDecoration(
                         color: currentIndex == index
-                            ? Colors.deepOrange
+                            ? const Color.fromARGB(255, 64, 21, 134)
                             : Colors.grey.shade400,
                         borderRadius: BorderRadius.circular(10),
                       ),

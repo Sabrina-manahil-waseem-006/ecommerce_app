@@ -119,10 +119,10 @@ class _AdminDashboardState extends State<AdminDashboard> {
           const Spacer(),
           const Divider(),
           ListTile(
-            leading: const Icon(Icons.logout, color: Colors.redAccent),
+            leading: const Icon(Icons.logout, color: Color.fromARGB(255, 26, 21, 90)),
             title: Text(
               "Logout",
-              style: GoogleFonts.poppins(color: Colors.redAccent),
+              style: GoogleFonts.poppins(color: const Color.fromARGB(255, 49, 24, 138)),
             ),
             onTap: _logout,
           ),
